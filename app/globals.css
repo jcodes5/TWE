@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Fonts */
+@font-face {
+  font-family: "Hartone";
+  src: url("/fonts/hartone.woff2") format("woff2"), url("/fonts/hartone.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Now Display";
+  src: url("/fonts/HelveticaNowDisplay-Black.woff2") format("woff2"), url("/fonts/HelveticaNowDisplay-Black.woff")
+    format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --color-black: #000000;
+  --color-gray: #b6b6b6;
+  --color-green-light: #a3e494;
+  --color-green-dark: #13714c;
+  --color-teal: #0c2b2d;
+}
+
+.dark {
+  --color-black: #ffffff;
+  --color-gray: #4a4a4a;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
