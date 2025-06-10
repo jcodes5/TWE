@@ -8,11 +8,11 @@ import Particles from "@tsparticles/react"
 import { loadSlim } from "@tsparticles/slim"
 
 const heroTitle = "About Us"
-const stats = [
-  { label: "Volunteers", value: "1,200+" },
-  { label: "Campaigns", value: "85" },
-  { label: "Countries Impacted", value: "16" },
-]
+// const stats = [
+//   { label: "Volunteers", value: "1,200+" },
+//   { label: "Campaigns", value: "85" },
+//   { label: "Countries Impacted", value: "16" },
+// ]
 
 export default function AboutHero() {
   const nextSectionRef = useRef<HTMLDivElement>(null)
@@ -105,7 +105,7 @@ export default function AboutHero() {
       </div>
 
       {/* Tilt Stats Card */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.8 }}
@@ -121,7 +121,7 @@ export default function AboutHero() {
             ))}
           </div>
         </Tilt>
-      </motion.div>
+      </motion.div> */}
 
       {/* Scroll Chevron */}
       <motion.div

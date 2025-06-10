@@ -51,10 +51,10 @@ export default function Campaigns() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-white mb-6">
+          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-black mb-6">
             Active Campaigns
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-500 max-w-3xl mx-auto">
             Discover our ongoing environmental initiatives and join the movement for positive change
           </p>
         </motion.div>
@@ -84,8 +84,8 @@ export default function Campaigns() {
                 </CardHeader>
 
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-black dark:text-white mb-3">{campaign.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{campaign.description}</p>
+                  <h3 className="text-xl font-semibold text-black dark:text-black mb-3">{campaign.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-500 mb-4 leading-relaxed">{campaign.description}</p>
 
                   <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">

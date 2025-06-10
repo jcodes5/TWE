@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import  Image from "next/image"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, Sun, Moon } from "lucide-react"
@@ -22,19 +23,16 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme()
   const pathname = usePathname()
 
-  // Sticky background
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Lock scroll on menu open
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto"
   }, [isOpen])
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
@@ -48,47 +46,46 @@ export default function Header() {
           ? "bg-gradient-to-r from-green-dark/90 via-green-light/90 to-teal/90 backdrop-blur-xl shadow-md border-b border-white/10"
           : "bg-transparent"
       }`}
-      role="banner"
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" role="navigation" aria-label="Main navigation">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group" aria-label="TW&E Homepage">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-light to-green-dark rounded-xl opacity-10 group-hover:opacity-20 transition-opacity duration-300" />
-              <div className="relative px-4 py-2">
-                <span className="text-2xl lg:text-3xl font-hartone font-bold bg-gradient-to-r from-green-dark to-teal bg-clip-text text-transparent dark:from-green-light dark:to-green-dark">
-                  TW&E
-                </span>
-              </div>
-            </div>
-            <div className="hidden md:block leading-tight">
-              <div className="text-sm font-medium text-white dark:text-gray-300">The Weather &</div>
-              <div className="text-sm font-medium text-white dark:text-gray-300">Everything</div>
-            </div>
-          </Link>
+  <div className="relative w-30 h-30 md:w-26 md:h-26">
+    <Image
+      src="/logo.png" // <-- Make sure this file exists
+      alt="TW&E Logo"
+      fill
+      className="object-contain"
+      priority
+    />
+  </div>
+  {/* <div className="hidden md:block leading-tight">
+    <div className="text-sm font-medium text-white dark:text-gray-300">The Weather &</div>
+    <div className="text-sm font-medium text-white dark:text-gray-300">Everything</div>
+  </div> */}
+</Link>
 
-          {/* Desktop Nav */}
-          <ul className="hidden lg:flex items-center space-x-3" role="menubar">
+          {/* Desktop Navigation */}
+          <ul className="hidden lg:flex items-center space-x-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
-                <li key={item.name} role="none">
+                <li key={item.name} className="relative">
                   <Link
                     href={item.href}
-                    className={`relative text-lg px-4 py-2 font-semibold group transition-all duration-300 ${
+                    className={`relative text-lg px-4 py-2 font-semibold transition-all duration-300 ${
                       isActive
                         ? "text-white dark:text-green-light"
                         : "text-white dark:text-gray-300 hover:text-green-light"
                     }`}
-                    role="menuitem"
-                    aria-current={isActive ? "page" : undefined}
                   >
-                    <span className="z-10 relative">{item.name}</span>
+                    <span className="relative z-10">{item.name}</span>
                     {isActive && (
                       <motion.span
-                        layoutId="navbar-active"
-                        className="absolute bottom-0 left-1/2 w-full h-[2px] bg-green-light dark:bg-green-dark transform -translate-x-1/2"
+                        layoutId="navbar-underline"
+                        className="absolute bottom-0 left-0 w-full h-[2px] bg-green-light dark:bg-green-dark"
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                       />
                     )}
                   </Link>
@@ -97,7 +94,7 @@ export default function Header() {
             })}
           </ul>
 
-          {/* Right Side */}
+          {/* Right Controls */}
           <div className="flex items-center space-x-3">
             {/* Theme Toggle */}
             <Button
@@ -105,7 +102,6 @@ export default function Header() {
               size="sm"
               onClick={toggleTheme}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-              aria-label="Toggle theme"
             >
               <motion.div animate={{ rotate: theme === "dark" ? 180 : 0 }} transition={{ duration: 0.3 }}>
                 {theme === "dark" ? (
@@ -116,25 +112,23 @@ export default function Header() {
               </motion.div>
             </Button>
 
-            {/* Join Button */}
+            {/* CTA */}
             <div className="hidden lg:block">
               <Button
                 asChild
-                className="bg-gradient-to-r from-green-light to-green-dark hover:from-green-dark hover:to-teal text-white px-6 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-500"
+                className="bg-gradient-to-r from-green-light to-green-dark hover:from-green-dark hover:to-teal text-white px-6 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                <Link href="/join">Join TW&E</Link>
+                <Link href="/join">Join Us</Link>
               </Button>
             </div>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Toggle */}
             <div className="lg:hidden">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                aria-label="Toggle menu"
-                aria-expanded={isOpen}
               >
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
                   {isOpen ? (
@@ -148,56 +142,49 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Slide-in Menu */}
+        {/* Mobile Menu */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-              animate={{ opacity: 1, backdropFilter: "blur(6px)" }}
-              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+              key="mobile-menu-bg"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              aria-modal="true"
-              role="dialog"
             >
               <motion.div
+                key="mobile-menu"
+                className="absolute right-0 top-0 h-full w-3/4 sm:w-2/5 bg-gray-900 text-white p-6 shadow-xl"
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-0 h-full w-3/4 sm:w-2/5 bg-gray-900 text-white shadow-xl border-l border-green-light p-6 space-y-6"
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               >
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold">Menu</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(false)}
-                    aria-label="Close menu"
-                  >
+                <div className="flex justify-between items-center mb-4">
+                  {/* <h2 className="text-xl font-bold">Menu</h2> */}
+                  <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                     <X className="w-6 h-6 text-white" />
                   </Button>
                 </div>
-
                 <nav className="space-y-3">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`block text-lg font-medium px-4 py-2 rounded-md ${
-                        pathname === item.href
-                          ? "bg-green-light/10 text-green-light"
-                          : "hover:text-green-light hover:bg-green-dark/20"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </nav>
+  {navigation.map((item) => (
+    <Link
+      key={item.name}
+      href={item.href}
+      className={`block text-xl font-bold px-4 py-3 rounded-md transition-all duration-300 ${
+        pathname === item.href
+          ? "bg-green-light/10 text-green-light"
+          : "text-white hover:text-green-light hover:bg-green-dark/20"
+      }`}
+    >
+      {item.name}
+    </Link>
+  ))}
+</nav>
 
-                <div className="pt-6 border-t border-white/10">
+                <div className="pt-6 border-t border-white/10 mt-6">
                   <Button
                     asChild
                     className="w-full bg-gradient-to-r from-green-light to-green-dark hover:from-green-dark hover:to-teal text-white font-semibold rounded-xl shadow-lg transition"

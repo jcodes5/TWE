@@ -20,7 +20,7 @@ const values = [
   {
     icon: <Lightbulb className="h-10 w-10" />,
     title: "Innovation",
-    description: "We embrace creative solutions and cutting-edge approaches to environmental challenges.",
+    description: "We embrace creative solutions and cutting-edge approaches to environmental issues.",
     color: "from-yellow-400 to-orange-500",
   },
   {
@@ -49,9 +49,9 @@ export default function ValuesSection() {
 
   return (
     <section ref={ref} className="py-32 bg-gray-50 dark:bg-[#0c2b2d] relative overflow-hidden">
-      {/* Optional background pattern */}
-      {/*
-      <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none z-0">
+      {/* Background pattern */}
+
+      {/* <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none z-0">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -60,8 +60,8 @@ export default function ValuesSection() {
           </defs>
           <rect width="100%" height="100%" fill="url(#dots)" />
         </svg>
-      </div>
-      */}
+      </div> */}
+
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}

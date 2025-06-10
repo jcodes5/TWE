@@ -102,7 +102,7 @@ export default function BlogGrid() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-white mb-6">
+          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-black mb-6">
             Latest Articles
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
@@ -144,7 +144,7 @@ export default function BlogGrid() {
                   <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                     {blogPosts.filter(post => post.featured)[0].excerpt}
                   </p>
-                  
+
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center">

@@ -6,42 +6,42 @@ import { Calendar, Award, Users, Globe } from "lucide-react"
 
 const timelineEvents = [
   {
-    year: "2018",
+    year: "2020",
     title: "Foundation",
     description: "TW&E was founded by a group of passionate climate scientists and educators.",
     icon: <Calendar className="h-6 w-6" />,
     color: "from-blue-400 to-blue-600",
   },
   {
-    year: "2019",
+    year: "2021",
     title: "First Campaign",
     description: "Launched our first major campaign focusing on urban air quality improvement.",
     icon: <Users className="h-6 w-6" />,
     color: "from-green-400 to-green-600",
   },
   {
-    year: "2020",
+    year: "2022",
     title: "Global Expansion",
     description: "Expanded operations to 15 countries, building a global network of advocates.",
     icon: <Globe className="h-6 w-6" />,
     color: "from-purple-400 to-purple-600",
   },
   {
-    year: "2021",
+    year: "2023",
     title: "Recognition",
     description: "Received the Global Environmental Leadership Award for community impact.",
     icon: <Award className="h-6 w-6" />,
     color: "from-yellow-400 to-orange-500",
   },
   {
-    year: "2022",
+    year: "2024",
     title: "50K Members",
     description: "Reached 50,000 active community members across all our platforms.",
     icon: <Users className="h-6 w-6" />,
     color: "from-pink-400 to-red-500",
   },
   {
-    year: "2024",
+    year: "2025",
     title: "Future Vision",
     description: "Launching new initiatives focused on renewable energy and sustainable communities.",
     icon: <Globe className="h-6 w-6" />,
@@ -59,6 +59,19 @@ export default function TimelineSection() {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,rgba(163,228,148,0.3),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(163,228,148,0.1),transparent_80%)]" />
       </div>
+
+      {/* Background pattern */}
+
+            <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none z-0">
+              <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="2" fill="#a3e494" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#dots)" />
+              </svg>
+            </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -113,12 +126,12 @@ export default function TimelineSection() {
                         >
                           {event.icon}
                         </div>
-                        <span className="ml-4 text-2xl font-hartone font-bold text-green-dark dark:text-green-light">
+                        <span className="ml-4 text-2xl font-hartone font-bold text-green-dark dark:text-green-dark">
                           {event.year}
                         </span>
                       </div>
-                      <h3 className="text-2xl font-semibold text-black dark:text-white mb-2">{event.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{event.description}</p>
+                      <h3 className="text-2xl font-semibold text-black dark:text-black mb-2">{event.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-500">{event.description}</p>
                     </div>
                   </div>
 
