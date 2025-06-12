@@ -56,7 +56,7 @@ export default function Hero() {
       </div>
 
       {/* Weather Widget */}
-      <div className="absolute top-24 right-4 lg:right-8 z-20">
+      <div className="absolute top-24 right-4 lg:right-8 sm: z-20">
         <WeatherWidget />
       </div>
 
@@ -130,7 +130,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Scroll Indicator */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1.2 }}
@@ -147,7 +147,7 @@ export default function Hero() {
                 className="w-1.5 h-4 bg-gradient-to-b from-green-light to-transparent rounded-full mt-2"
               />
             </motion.div>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </div>
     </section>

@@ -51,9 +51,9 @@ export default function Header() {
         <div className="flex justify-between items-center h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group" aria-label="TW&E Homepage">
-  <div className="relative w-30 h-30 md:w-26 md:h-26">
+  <div className="relative w-32 h-32 md:w-26 md:h-26">
     <Image
-      src="/logo.png" // <-- Make sure this file exists
+      src="/logo.png"
       alt="TW&E Logo"
       fill
       className="object-contain"
