@@ -4,7 +4,7 @@ import "./globals.css"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import ScrollToTop from "@/components/ui/scroll-to-top"
-import { ThemeProvider } from "@/components/providers/ThemeProvider"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: "The Weather and Everything (TW&E) - Environmental Action NGO",
@@ -35,7 +35,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-helvetica antialiased">
-        <ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-1">{children}</main>
