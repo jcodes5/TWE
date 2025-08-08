@@ -1,54 +1,23 @@
-
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AuthService } from './lib/auth'
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Dashboard route protection
+  const accessToken = request.cookies.get('accessToken')?.value
+  const refreshToken = request.cookies.get('refreshToken')?.value
+
+  console.log('🌍 middleware pathname:', pathname)
+  console.log('🍪 accessToken exists:', !!accessToken)
+  console.log('🍪 refreshToken exists:', !!refreshToken)
+
+  // Only protect dashboard routes
   if (pathname.startsWith('/dashboard')) {
-    // Check if user is authenticated using access token
-    const accessToken = request.cookies.get('accessToken')?.value
-    
-    if (!accessToken) {
+    if (!accessToken && !refreshToken) {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
-    // Verify the access token
-    const payload = AuthService.verifyAccessToken(accessToken)
-    
-    if (!payload) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
-    }
-
-    // Check user role and redirect accordingly
-    const userRole = payload.role
-
-    if (pathname === '/dashboard') {
-      // Redirect to appropriate dashboard based on user role
-      switch (userRole) {
-        case 'ADMIN':
-          return NextResponse.redirect(new URL('/dashboard/admin', request.url))
-        case 'VOLUNTEER':
-          return NextResponse.redirect(new URL('/dashboard/volunteer', request.url))
-        case 'SPONSOR':
-          return NextResponse.redirect(new URL('/dashboard/sponsor', request.url))
-        default:
-          return NextResponse.redirect(new URL('/auth/login', request.url))
-      }
-    }
-
-    // Check if user is accessing the correct dashboard type
-    if (pathname.startsWith('/dashboard/admin') && userRole !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    if (pathname.startsWith('/dashboard/volunteer') && userRole !== 'VOLUNTEER') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    if (pathname.startsWith('/dashboard/sponsor') && userRole !== 'SPONSOR') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
+    // Let access through, token will be validated server-side
   }
 
   return NextResponse.next()

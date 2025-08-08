@@ -30,21 +30,24 @@ export class AuthService {
     return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' })
   }
 
-  static verifyAccessToken(token: string): JWTPayload | null {
-    try {
-      return jwt.verify(token, JWT_SECRET) as JWTPayload
-    } catch {
-      return null
-    }
+  static verifyAccessToken(token: string, secret = JWT_SECRET): JWTPayload | null {
+  try {
+    return jwt.verify(token, secret) as JWTPayload
+  } catch (err: any) {
+    console.error('❌ Access token invalid:', err.message)
+    return null
   }
+}
 
-  static verifyRefreshToken(token: string): JWTPayload | null {
-    try {
-      return jwt.verify(token, JWT_REFRESH_SECRET) as JWTPayload
-    } catch {
-      return null
-    }
+static verifyRefreshToken(token: string, secret = JWT_REFRESH_SECRET): JWTPayload | null {
+  try {
+    return jwt.verify(token, secret) as JWTPayload
+  } catch (err: any) {
+    console.error('❌ Refresh token invalid:', err.message)
+    return null
   }
+}
+
 
   static async storeRefreshToken(userId: string, token: string): Promise<void> {
     const expiresAt = new Date()
