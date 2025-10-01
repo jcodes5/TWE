@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,7 +5,8 @@
 /* Custom Fonts */
 @font-face {
   font-family: "Hartone";
-  src: url("/fonts/hartone.woff2") format("woff2"), url("/fonts/hartone.woff") format("woff");
+  src: url("/fonts/hartone.woff2") format("woff2"),
+    url("/fonts/hartone.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -14,10 +14,67 @@
 
 @font-face {
   font-family: "Helvetica Now Display";
-  src: url("/fonts/HelveticaNowDisplay-Black.woff2") format("woff2"), url("/fonts/HelveticaNowDisplay-Black.woff")
-    format("woff");
+  src: url("/fonts/HelveticaNowDisplay-Black.woff2") format("woff2"),
+    url("/fonts/HelveticaNowDisplay-Black.woff") format("woff");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 153 70% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 153 70% 26%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 153 70% 26%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 151 48% 64%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 17.5%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 17.5%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 151 48% 64%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 17.5%;
+    --input: 0 0% 17.5%;
+    --ring: 151 48% 64%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
   font-display: swap;
 }
 
@@ -48,7 +105,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    
+
     /* Custom colors */
     --color-black: #000000;
     --color-gray: #b6b6b6;
@@ -82,7 +139,7 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    
+
     /* Custom colors for dark mode */
     --color-black: #ffffff;
     --color-gray: #4a4a4a;

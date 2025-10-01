@@ -46,25 +46,25 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <div className="font-hartone text-2xl font-bold text-foreground">
-                TW&E
+                The Weather & Everything
               </div>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              The Weather & Everything is a global environmental NGO dedicated to combating climate change and creating
-              a sustainable future through community action and advocacy.
+               Empowering Communities to act on Climate change through
+              education, advocacy and solutions for an assured future.
             </p>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span>123 Green Street, Eco City, EC 12345</span>
+                <Mail className="h-4 w-4" />
+                <span>Theweatherandeverything@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+234 908 058 4032</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4" />
-                <span>hello@tweather.org</span>
+                <MapPin className="h-4 w-4" />
+                <span>Lekki, Lagos State</span>
               </div>
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function Footer() {
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p className="text-sm text-muted-foreground">
-              © 2024 The Weather & Everything. All rights reserved.
+              © 2025 The Weather & Everything. All rights reserved.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (

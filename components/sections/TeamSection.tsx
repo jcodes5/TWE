@@ -2,77 +2,86 @@
 
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
-import { Linkedin, Twitter, Mail } from "lucide-react"
-import Image from "next/image"
+import { Linkedin, Instagram, Mail } from "lucide-react"
+import Image from "next/image" 
+import Wesley from "@/public/Wesley.jpg"
+import Bukola from "@/public/Bukola .jpg"
+import Eyitayo from "@/public/Eyitayo.png"
+import Moyin from "@/public/Moyin.jpg"
 
 const teamMembers = [
   {
-    name: "Dr. Sarah Chen",
-    role: "Founder & CEO",
-    bio: "Climate scientist with 15+ years of experience in environmental research and policy.",
-    image: "/placeholder.svg?height=300&width=300",
+    name: "Babalola Oluwabukola",
+    role: "Founder & Executive Director",
+    bio: "Climate scientist with 5+ years of experience in environmental research and policy.",
+    image: Bukola,
     social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "sarah@tweather.org",
+      linkedin: "https://www.linkedin.com/in/oluwabukola-babalola-08081319b/",
+      Instagram:
+        "https://www.instagram.com/iris_bukola?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
+      email: "bukolairis@gmail.com",
     },
   },
   {
-    name: "Marcus Rodriguez",
+    name: "Ajiboye Wesley",
     role: "Director of Operations",
     bio: "Community organizer passionate about environmental justice and sustainable development.",
-    image: "/placeholder.svg?height=300&width=300",
+    image: Wesley,
     social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "marcus@tweather.org",
+      linkedin: "https://www.linkedin.com/in/wesley-o-ajiboye-29658017a/",
+      Instagram:
+        "https://www.instagram.com/wesleyoajiboye?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
+      email: "wesley.o.ajiboye@gmail.com",
     },
   },
   {
-    name: "Emma Thompson",
-    role: "Head of Communications",
+    name: "Aina Eyitayo",
+    role: "Head of Advocacy and Communications",
     bio: "Environmental journalist and storyteller dedicated to making climate science accessible.",
-    image: "/placeholder.svg?height=300&width=300",
+    image: Eyitayo,
     social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "emma@tweather.org",
+      linkedin: "https://www.linkedin.com/in/eyitayo-aina/",
+      Instagram:
+        "https://www.instagram.com/tayo_aina?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
+      email: "eyitaina@gmail.com",
     },
   },
   {
-    name: "Dr. James Park",
-    role: "Research Director",
+    name: "Taiwo Ayosile",
+    role: "Website Developer",
     bio: "Renewable energy expert focused on innovative solutions for sustainable communities.",
-    image: "/placeholder.svg?height=300&width=300",
+    image: Moyin,
     social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "james@tweather.org",
+      linkedin:
+        "https://www.linkedin.com/in/ay%C3%B2s%C3%ADl%C3%A9-moyinol%C3%BAwa-taiwo-95b346223/",
+      Instagram: "https://www.instagram.com/ayosilemoyinoluwa/",
+      email: "taiwoayosilemoyinoluwa@gmail.com",
     },
   },
   {
-    name: "Aisha Patel",
-    role: "Community Engagement Lead",
+    name: "Ayeni Oluwadamilola",
+    role: "Social Media Director",
     bio: "Grassroots organizer building bridges between science and community action.",
     image: "/placeholder.svg?height=300&width=300",
     social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "aisha@tweather.org",
+      linkedin: "https://www.linkedin.com/in/damilola-ayeni20/",
+      Instagram:
+        "https://www.instagram.com/theglobaldamemoymo?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
+      email: "damilolaayeni28@gmail.com",
     },
   },
-  {
-    name: "Carlos Silva",
-    role: "Technology Director",
-    bio: "Software engineer developing digital tools for environmental monitoring and education.",
-    image: "/placeholder.svg?height=300&width=300",
-    social: {
-      linkedin: "#",
-      twitter: "#",
-      email: "carlos@tweather.org",
-    },
-  },
-]
+  //{
+  // name: "Carlos Silva",
+  //role: "Technology Director",
+  // bio: "Software engineer developing digital tools for environmental monitoring and education.",
+  //image: "/placeholder.svg?height=300&width=300",
+  //social: {
+  // linkedin: "#",
+  // twitter: "#",
+  //email: "carlos@tweather.org",
+  //},
+  //},
+];
 
 export default function TeamSection() {
   const ref = useRef(null)
@@ -110,13 +119,21 @@ export default function TeamSection() {
             >
               <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2">
                 <div className="relative overflow-hidden">
-                  <Image
-                    src={member.image || "/placeholder.svg"}
-                    alt={member.name}
-                    width={300}
-                    height={300}
-                    className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {typeof member.image === 'string' ? (
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      width={400}
+                      height={400}
+                      className="w-full transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
                   {/* Gradient overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -130,11 +147,11 @@ export default function TeamSection() {
                       <Linkedin className="h-5 w-5" />
                     </a>
                     <a
-                      href={member.social.twitter}
+                      href={member.social.Instagram}
                       className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30"
-                      aria-label="Twitter"
+                      aria-label="Instagram"
                     >
-                      <Twitter className="h-5 w-5" />
+                      <Instagram className="h-5 w-5" />
                     </a>
                     <a
                       href={`mailto:${member.social.email}`}
@@ -147,8 +164,8 @@ export default function TeamSection() {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-2xl font-semibold text-black dark:text-black mb-1">{member.name}</h3>
-                  <p className="text-green-dark dark:text-green-dark font-medium mb-3">{member.role}</p>
+                  <h3 className="text-2xl font-semibold text-black dark:text-white mb-1">{member.name}</h3>
+                  <p className="text-green-dark dark:text-green-light font-medium mb-3">{member.role}</p>
                   <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{member.bio}</p>
                 </div>
               </div>

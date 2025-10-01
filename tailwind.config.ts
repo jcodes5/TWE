@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
@@ -8,12 +8,12 @@ const config: Config = {
     "*.{js,ts,jsx,tsx,mdx}",
   ],
   screens: {
-    'xs': '475px',
-    'sm': '640px',
-    'md': '768px',
-    'lg': '1024px',
-    'xl': '1280px',
-    '2xl': '1536px',
+    xs: "475px",
+    sm: "640px",
+    md: "768px",
+    lg: "1024px",
+    xl: "1280px",
+    "2xl": "1536px",
   },
   darkMode: "class",
   theme: {
@@ -23,11 +23,36 @@ const config: Config = {
         helvetica: ["Helvetica Now Display", "sans-serif"],
       },
       colors: {
-        black: "#000000",
-        gray: "#b6b6b6",
-        "green-light": "#a3e494",
-        "green-dark": "#13714c",
-        teal: "#0c2b2d",
+        primary: {
+          DEFAULT: "#13714c",
+          light: "#a3e494",
+          dark: "#0c2b2d",
+        },
+        secondary: {
+          DEFAULT: "#b6b6b6",
+          light: "#f5f5f5",
+          dark: "#2d2d2d",
+        },
+        background: {
+          light: "#ffffff",
+          dark: "#121212",
+        },
+        text: {
+          light: "#000000",
+          dark: "#ffffff",
+        },
+        accent: {
+          light: "#13714c",
+          dark: "#a3e494",
+        },
+        muted: {
+          light: "#666666",
+          dark: "#a0a0a0",
+        },
+        border: {
+          light: "#e5e5e5",
+          dark: "#2d2d2d",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -80,7 +105,7 @@ const config: Config = {
         "scale-in": "scaleIn 0.3s ease-out",
       },
       spacing: {
-        '70': '17.5rem',
+        "70": "17.5rem",
       },
       keyframes: {
         fadeIn: {
@@ -99,6 +124,6 @@ const config: Config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};
 
-export default config
+export default config;

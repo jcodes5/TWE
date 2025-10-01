@@ -1,30 +1,36 @@
+"use client";
 
-"use client"
-
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ArrowRight, Play, MapPin, Thermometer, Wind, Droplets } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import Link from "next/link"
-import WeatherWidget from "@/components/features/WeatherWidget"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Play,
+  MapPin,
+  Thermometer,
+  Wind,
+  Droplets,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import Link from "next/link";
+import WeatherWidget from "@/components/features/WeatherWidget";
 
 export default function Hero() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 overflow-hidden">
+    <section className="relative min-h-screen bg-background overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient orbs */}
         <motion.div
-          className="absolute w-96 h-96 bg-gradient-to-r from-green-light/20 to-blue-400/20 rounded-full blur-3xl"
+          className="absolute w-96 h-96 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -92,7 +98,9 @@ export default function Hero() {
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed"
               >
-                Empowering communities through environmental awareness, sustainable practices, and collective action for a greener tomorrow.
+                Empowering communities through environmental awareness,
+                sustainable practices, and collective action for a greener
+                tomorrow.
               </motion.p>
             </div>
 
@@ -204,5 +212,5 @@ export default function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }
