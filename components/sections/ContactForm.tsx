@@ -38,10 +38,26 @@ export default function ContactForm() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitState, setSubmitState] = useState<'idle'|'submitting'|'success'|'error'>('idle')
+  const [submitMsg, setSubmitMsg] = useState<string>("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log("Form submitted:", formData)
+    try {
+      setSubmitState('submitting')
+      const res = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) throw new Error('Failed to submit')
+      setSubmitState('success')
+      setSubmitMsg('Thanks! Your message has been received.')
+      setFormData({ name: '', email: '', organization: '', subject: '', message: '', inquiryType: 'general' })
+    } catch (err) {
+      setSubmitState('error')
+      setSubmitMsg('Something went wrong. Please try again.')
+    }
   }
 
   return (
@@ -227,6 +243,9 @@ export default function ContactForm() {
                   </Button>
                 </motion.div>
 
+                {submitState !== 'idle' && (
+                  <p className={`text-center text-sm ${submitState === 'success' ? 'text-green-600' : 'text-red-600'}`}>{submitMsg}</p>
+                )}
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={isInView ? { opacity: 1 } : {}}

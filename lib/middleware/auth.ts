@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '../auth'
 import { UserRole } from '@prisma/client'
@@ -7,7 +6,9 @@ export function withAuth(handler: Function, requiredRoles?: UserRole[]) {
   return async (request: NextRequest, context?: any) => {
     try {
       const authHeader = request.headers.get('Authorization')
-      const token = authHeader?.replace('Bearer ', '')
+      const headerToken = authHeader?.replace('Bearer ', '')
+      const cookieToken = request.cookies.get('accessToken')?.value
+      const token = headerToken || cookieToken
 
       if (!token) {
         return NextResponse.json({ error: 'No token provided' }, { status: 401 })

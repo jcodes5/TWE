@@ -132,3 +132,27 @@ enum PostStatus {
   PUBLISHED
   ARCHIVED
 }
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  ARCHIVED
+}
+
+model Contact {
+  id            String         @id @default(cuid())
+  name          String
+  email         String
+  phone         String?
+  organization  String?
+  subject       String
+  message       String
+  inquiryType   String
+  status        ContactStatus  @default(NEW)
+  createdAt     DateTime       @default(now())
+  assignedToId  String?
+  assignedTo    User?          @relation(fields: [assignedToId], references: [id])
+
+  @@map("contacts")
+}
