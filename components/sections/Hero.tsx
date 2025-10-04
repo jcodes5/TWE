@@ -168,7 +168,7 @@ export default function Hero() {
               {/* Main Image */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <img
-                  src="/placeholder.jpg"
+                  src="/hero_img.jpg"
                   alt="Environmental conservation"
                   className="w-full h-[500px] lg:h-[600px] object-cover"
                 />

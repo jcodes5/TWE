@@ -85,7 +85,7 @@ export default function JoinHero() {
           >
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/placeholder.jpg"
+                src="/join_img.jpg"
                 alt="Join Our Community"
                 fill
                 className="object-cover"

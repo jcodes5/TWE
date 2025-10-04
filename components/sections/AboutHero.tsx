@@ -145,7 +145,7 @@ export default function AboutHero() {
               {/* Main Image */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <img
-                  src="/placeholder.jpg"
+                  src="/about_img.jpg"
                   alt="Team working on environmental projects"
                   className="w-full h-[500px] lg:h-[600px] object-cover"
                 />

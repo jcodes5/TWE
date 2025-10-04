@@ -145,7 +145,7 @@ export default function CampaignsHero() {
               {/* Main Image */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <img
-                  src="/placeholder.jpg"
+                  src="\campaigns_img.jpg"
                   alt="Environmental campaigns in action"
                   className="w-full h-[500px] lg:h-[600px] object-cover"
                 />

@@ -81,7 +81,7 @@ export default function BlogHero() {
           >
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/placeholder.jpg"
+                src="/blog_img.jpg"
                 alt="Environmental Blog"
                 fill
                 className="object-cover"

@@ -29,17 +29,18 @@ model User {
   refreshTokens RefreshToken[]
 
   // Related data
-  campaigns     Campaign[]
-  donations     Donation[]
-  blogPosts     BlogPost[]
-  comments      Comment[]
+  campaigns        Campaign[]
+  donations        Donation[]
+  blogPosts        BlogPost[]
+  comments         Comment[]
+  assignedContacts Contact[]
 
   @@map("users")
 }
 
 model RefreshToken {
   id        String   @id @default(cuid())
-  token     String   @unique
+  token     String   @unique @db.VarChar(500)
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
@@ -50,19 +51,19 @@ model RefreshToken {
 }
 
 model Campaign {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   title       String
   description String
   content     String
   image       String?
   goal        Float
-  raised      Float         @default(0)
+  raised      Float          @default(0)
   category    String
   location    String
   status      CampaignStatus @default(DRAFT)
   createdById String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   createdBy User       @relation(fields: [createdById], references: [id])
   donations Donation[]
@@ -84,16 +85,16 @@ model Donation {
 }
 
 model BlogPost {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   title     String
   content   String
   excerpt   String?
   image     String?
   category  String
-  status    PostStatus  @default(DRAFT)
+  status    PostStatus @default(DRAFT)
   authorId  String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   author   User      @relation(fields: [authorId], references: [id])
   comments Comment[]
@@ -141,18 +142,18 @@ enum ContactStatus {
 }
 
 model Contact {
-  id            String         @id @default(cuid())
-  name          String
-  email         String
-  phone         String?
-  organization  String?
-  subject       String
-  message       String
-  inquiryType   String
-  status        ContactStatus  @default(NEW)
-  createdAt     DateTime       @default(now())
-  assignedToId  String?
-  assignedTo    User?          @relation(fields: [assignedToId], references: [id])
+  id           String        @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
+  organization String?
+  subject      String
+  message      String
+  inquiryType  String
+  status       ContactStatus @default(NEW)
+  createdAt    DateTime      @default(now())
+  assignedToId String?
+  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
 
   @@map("contacts")
 }

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -31,8 +30,8 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData), // Use formData instead of separate email/password
-        credentials: 'same-origin' // This is needed to handle cookies
+        body: JSON.stringify(formData),
+        credentials: 'include',
       });
 
       console.log('Response status:', res.status) // Debug log
@@ -67,7 +66,7 @@ export default function LoginPage() {
     <AuthLayout
       title="Welcome Back"
       description="Sign in to your TW&E account and continue making a difference for our planet."
-      image="/images/auth/login-hero.jpg"
+      image="/login.jpg"
       imageAlt="Nature conservation illustration"
     >
       <div className="space-y-8">
