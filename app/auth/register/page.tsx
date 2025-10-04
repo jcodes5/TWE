@@ -89,7 +89,7 @@ export default function RegisterPage() {
     <AuthLayout
       title="Join Our Community"
       description="Create your account and start making a difference for our planet today."
-      image="/images/auth/register-hero.jpg"
+      image="/signup.jpg"
       imageAlt="Environmental volunteer work illustration"
     >
       <div className="space-y-6">

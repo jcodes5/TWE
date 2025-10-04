@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Sun, Moon, LayoutDashboard } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import Image from "next/image"
+import Image from "next/image";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Campaigns", href: "/campaigns" },
-  {name: "Gallery", href: "/gallery" },
+  { name: "Gallery", href: "/gallery" },
   { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },
 ];
@@ -71,30 +71,34 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
         scrolled
           ? "bg-background/95 backdrop-blur-sm border-b border-border shadow-sm"
-          : "bg-transparent"
+          : "bg-background/80 backdrop-blur-sm"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 md:h-18">
           {/* Logo */}
-            <Link href="/" className="flex items-center space-x-3 group" aria-label="TW&E Homepage">
-  <div className="relative w-32 h-32 md:w-26 md:h-26">
-    <Image
-      src="/logo.png"
-      alt="TW&E Logo"
-      fill
-      className="object-contain"
-      priority
-    />
-  </div>
-  {/* <div className="hidden md:block leading-tight">
+          <Link
+            href="/"
+            className="flex items-center space-x-3 group"
+            aria-label="TW&E Homepage"
+          >
+            <div className="relative w-32 h-32 md:w-26 md:h-26">
+              <Image
+                src="/logo.png"
+                alt="TW&E Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            {/* <div className="hidden md:block leading-tight">
     <div className="text-sm font-medium text-white dark:text-gray-300">The Weather &</div>
     <div className="text-sm font-medium text-white dark:text-gray-300">Everything</div>
   </div> */}
-</Link>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
