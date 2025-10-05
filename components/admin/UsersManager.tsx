@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Search, Filter } from "lucide-react"
 
 export type Role = "VOLUNTEER" | "SPONSOR" | "ADMIN"
 
@@ -21,7 +22,8 @@ type User = {
 }
 
 export default function UsersManager() {
-  const [roleFilter, setRoleFilter] = useState<Role | "ALL">("VOLUNTEER")
+  const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL")
+  const [searchQuery, setSearchQuery] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: "", firstName: "", lastName: "", phone: "", role: "VOLUNTEER" as Role, password: "" })
@@ -37,6 +39,19 @@ export default function UsersManager() {
 
   useEffect(() => { load() }, [roleFilter])
 
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = 
+        user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      const matchesRole = roleFilter === "ALL" || user.role === roleFilter
+      
+      return matchesSearch && matchesRole
+    })
+  }, [users, searchQuery, roleFilter])
+
   async function createUser() {
     const res = await fetch("/api/admin/users", {
       method: "POST",
@@ -49,89 +64,117 @@ export default function UsersManager() {
     }
   }
 
-  async function updateUser(id: string, patch: Partial<User>) {
-    await fetch(`/api/admin/users/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    })
-    await load()
-  }
-
-  async function deleteUser(id: string) {
-    await fetch(`/api/admin/users/${id}`, { method: "DELETE" })
-    await load()
-  }
-
-  const headline = useMemo(() => (roleFilter === "SPONSOR" ? "Manage Sponsors" : roleFilter === "VOLUNTEER" ? "Manage Volunteers" : "Manage Users"), [roleFilter])
-
   return (
-    <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-      <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>{headline}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as Role | "ALL") }>
-            <SelectTrigger><SelectValue placeholder="Filter by role" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="VOLUNTEER">Volunteers</SelectItem>
-              <SelectItem value="SPONSOR">Sponsors</SelectItem>
-              <SelectItem value="ALL">All</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="h-px bg-border/60 my-2" />
-
-          <p className="text-sm font-medium">Create User</p>
-          <Input placeholder="First name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
-          <Input placeholder="Last name" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
-          <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
-            <SelectTrigger><SelectValue placeholder="Role" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
-              <SelectItem value="SPONSOR">Sponsor</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder="Temporary Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          <Button onClick={createUser} disabled={loading || !form.email || !form.firstName || !form.lastName || !form.password}>Create</Button>
-        </CardContent>
-      </Card>
-
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Users</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {loading ? <p>Loading...</p> : null}
-          {users.map((u) => (
-            <div key={u.id} className="flex items-start justify-between gap-4 border-b py-3">
-              <div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Users Management</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Select value={roleFilter} onValueChange={(value: Role | "ALL") => setRoleFilter(value)}>
+              <SelectTrigger className="w-[180px]">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{u.firstName} {u.lastName}</h3>
-                  <Badge variant="secondary">{u.role}</Badge>
-                  <Badge>{u.verified ? "Verified" : "Unverified"}</Badge>
+                  <Filter className="h-4 w-4" />
+                  <SelectValue placeholder="Filter by role" />
                 </div>
-                <p className="text-xs text-muted-foreground">{u.email} {u.phone ? `• ${u.phone}` : ""}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => updateUser(u.id, { verified: !u.verified })}>{u.verified ? "Unverify" : "Verify"}</Button>
-                <Select value={u.role} onValueChange={(v) => updateUser(u.id, { role: v as Role })}>
-                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
-                    <SelectItem value="SPONSOR">Sponsor</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="destructive" size="sm" onClick={() => deleteUser(u.id)}>Delete</Button>
-              </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Roles</SelectItem>
+                <SelectItem value="VOLUNTEER">Volunteers</SelectItem>
+                <SelectItem value="SPONSOR">Sponsors</SelectItem>
+                <SelectItem value="ADMIN">Admins</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="border rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            {filteredUsers.map(user => (
+              <Card key={user.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{user.firstName} {user.lastName}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                    <Badge variant={user.role === "ADMIN" ? "default" : user.role === "SPONSOR" ? "secondary" : "outline"}>
+                      {user.role}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </span>
+                    <Badge variant={user.verified ? "default" : "destructive"} className="text-xs">
+                      {user.verified ? "Verified" : "Unverified"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-10 text-muted-foreground">
+              No users found
             </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
+          )}
+        </div>
+
+        <div className="border rounded-lg p-4">
+          <h3 className="font-medium mb-4">Add New User</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              placeholder="First Name"
+              value={form.firstName}
+              onChange={e => setForm({...form, firstName: e.target.value})}
+            />
+            <Input
+              placeholder="Last Name"
+              value={form.lastName}
+              onChange={e => setForm({...form, lastName: e.target.value})}
+            />
+            <Input
+              placeholder="Email"
+              type="email"
+              value={form.email}
+              onChange={e => setForm({...form, email: e.target.value})}
+            />
+            <Input
+              placeholder="Phone"
+              value={form.phone}
+              onChange={e => setForm({...form, phone: e.target.value})}
+            />
+            <Select value={form.role} onValueChange={value => setForm({...form, role: value as Role})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
+                <SelectItem value="SPONSOR">Sponsor</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Password"
+              type="password"
+              value={form.password}
+              onChange={e => setForm({...form, password: e.target.value})}
+            />
+          </div>
+          <Button className="mt-4" onClick={createUser}>Create User</Button>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

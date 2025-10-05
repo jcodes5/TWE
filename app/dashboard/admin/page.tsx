@@ -7,11 +7,24 @@ import { BarChart, DonutChart, LineChart } from "@/components/dashboard/Charts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 import BlogManager from "@/components/admin/BlogManager"
 import CampaignManager from "@/components/admin/CampaignManager"
 import UsersManager from "@/components/admin/UsersManager"
 import ContactsManager from "@/components/admin/ContactsManager"
+import NotificationsPanel from "@/components/admin/NotificationsPanel"
+import ExportData from "@/components/admin/ExportData"
 import { UserRole, CampaignStatus, PostStatus } from "@prisma/client"
+import {
+  Plus,
+  Pen,
+  UserPlus,
+  Settings,
+  TrendingUp,
+  Target,
+  Users as UsersIcon,
+  DollarSign
+} from "lucide-react"
 
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) redirect("/auth/login")
@@ -52,124 +65,213 @@ export default async function AdminDashboardPage() {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     months.push(monthKey(d))
   }
-  const byMonth: Record<string, number> = Object.fromEntries(months.map((m) => [m, 0]))
-  for (const row of donationRows) {
-    const key = monthKey(row.createdAt)
-    if (key in byMonth) byMonth[key] += row.amount
-  }
-  const donationsSeries = months.map((m) => ({ month: m, amount: Number(byMonth[m].toFixed(2)) }))
 
-  // Map top campaigns by raised amount
-  const campaignMap = new Map<string, { title: string | null }>()
-  const campaignIds = donationsByCampaign.map((d) => d.campaignId)
-  const campaigns = await prisma.campaign.findMany({ where: { id: { in: campaignIds } }, select: { id: true, title: true } })
-  campaigns.forEach((c) => campaignMap.set(c.id, { title: c.title }))
-  const topCampaigns = donationsByCampaign
-    .map((d) => ({ name: campaignMap.get(d.campaignId)?.title || d.campaignId, value: Number((d._sum.amount || 0).toFixed(2)) }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5)
+  const donationsByMonth = months.map(month => {
+    const amount = donationRows
+      .filter(d => monthKey(new Date(d.createdAt)) === month)
+      .reduce((sum, d) => sum + d.amount, 0)
+    return { month, amount }
+  })
 
-  const totalDonations = Number((totalDonationsAgg._sum.amount || 0).toFixed(2))
+  // Build campaign donation data
+  const campaignDonations = donationsByCampaign.map(c => ({
+    name: `Campaign ${c.campaignId}`,
+    value: c._sum.amount || 0,
+  }))
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Welcome back, {payload.email}</p>
-        </div>
-        <form action="/api/auth/logout" method="post">
-          <Button type="submit" variant="outline">Logout</Button>
-        </form>
+    <div className="space-y-6">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15 transition-colors">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Plus className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium">Create New Campaign</h3>
+              <p className="text-xs text-muted-foreground truncate">Manage fundraising and activities</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15 transition-colors">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Pen className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium">Write Blog Post</h3>
+              <p className="text-xs text-muted-foreground truncate">Share updates and stories</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15 transition-colors">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <UserPlus className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium">Add New User</h3>
+              <p className="text-xs text-muted-foreground truncate">Manage volunteers and sponsors</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15 transition-colors">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Settings className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium">Site Settings</h3>
+              <p className="text-xs text-muted-foreground truncate">Manage general settings</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="blogs">Blogs</TabsTrigger>
+      {/* Data Export Section */}
+      <ExportData />
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard 
+          title="Total Users" 
+          value={totalUsers} 
+          subtitle={`+${volunteers} volunteers, +${sponsors} sponsors`} 
+          icon={<UsersIcon className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard 
+          title="Active Campaigns" 
+          value={activeCampaigns} 
+          subtitle={`${(activeCampaigns / totalCampaigns * 100).toFixed(1)}% of total`} 
+          icon={<Target className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard 
+          title="Published Posts" 
+          value={publishedPosts} 
+          subtitle={`${(publishedPosts / (publishedPosts + draftPosts) * 100).toFixed(1)}% of total`} 
+          icon={<Pen className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard 
+          title="Total Donations" 
+          value={`$${totalDonationsAgg._sum.amount?.toLocaleString() || '0'}`} 
+          subtitle="Across all campaigns"
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+        />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Charts */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Donations Over Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LineChart data={donationsByMonth} xKey="month" yKey="amount" label="Donations" />
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BarChart data={campaignDonations} xKey="name" yKey="value" label="Donations" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DonutChart data={[
+                  { name: "Active", value: activeCampaigns },
+                  { name: "Draft", value: draftCampaigns },
+                  { name: "Completed", value: completedCampaigns }
+                ]} xKey="name" yKey="value" label="Campaigns" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Column - Recent Activity and Notifications */}
+        <div className="space-y-6">
+          <NotificationsPanel />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Donations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentDonations.map(donation => (
+                  <div key={donation.id} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{donation.user.firstName} {donation.user.lastName}</p>
+                      <p className="text-xs text-muted-foreground">{donation.campaign.title}</p>
+                    </div>
+                    <p className="text-sm font-medium">${donation.amount.toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentUsers.map(user => (
+                  <div key={user.id} className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{user.role.toLowerCase()}</p>
+                    </div>
+                    <Badge variant={user.role === "ADMIN" ? "default" : user.role === "SPONSOR" ? "secondary" : "outline"}>
+                      {user.role}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Tabs for Management Sections */}
+      <Tabs defaultValue="campaigns" className="space-y-4">
+        <TabsList>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+          <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="contacts">Contacts</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="Total Users" value={totalUsers} subtitle={`${admins} Admin • ${volunteers} Volunteers • ${sponsors} Sponsors`} />
-            <StatCard title="Campaigns" value={totalCampaigns} subtitle={`${activeCampaigns} Active • ${completedCampaigns} Completed • ${draftCampaigns} Draft`} />
-            <StatCard title="Published Posts" value={publishedPosts} subtitle={`${draftPosts} Draft`} />
-            <StatCard title="Total Donations" value={`$${totalDonations.toLocaleString()}`} subtitle="All-time" />
-          </div>
-
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>Donations (last 6 months)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LineChart data={donationsSeries} xKey="month" yKey="amount" label="Donations" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Campaigns by Funds</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DonutChart data={topCampaigns} nameKey="name" valueKey="value" />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Donations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentDonations.map((d) => (
-                    <div key={d.id} className="flex items-center justify-between border-b last:border-b-0 py-2">
-                      <div>
-                        <p className="text-sm font-medium">${"$"}{d.amount.toFixed(2)} to {d.campaign.title}</p>
-                        <p className="text-xs text-muted-foreground">{d.user.firstName} {d.user.lastName} • {d.createdAt.toDateString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>New Users</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentUsers.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between border-b last:border-b-0 py-2">
-                      <div>
-                        <p className="text-sm font-medium">{u.firstName} {u.lastName}</p>
-                        <p className="text-xs text-muted-foreground">{u.email} • {u.role}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="blogs">
-          <BlogManager />
-        </TabsContent>
-
-        <TabsContent value="campaigns">
+        <TabsContent value="campaigns" className="space-y-4">
           <CampaignManager />
         </TabsContent>
 
-        <TabsContent value="users">
+        <TabsContent value="blog" className="space-y-4">
+          <BlogManager />
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
           <UsersManager />
         </TabsContent>
 
-        <TabsContent value="contacts">
+        <TabsContent value="contacts" className="space-y-4">
           <ContactsManager />
         </TabsContent>
       </Tabs>
