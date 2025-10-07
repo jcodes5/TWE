@@ -34,6 +34,8 @@ model User {
   blogPosts        BlogPost[]
   comments         Comment[]
   assignedContacts Contact[]
+  createdImages    GalleryImage[]
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -141,6 +143,20 @@ enum ContactStatus {
   ARCHIVED
 }
 
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum EntityType {
+  USER
+  CAMPAIGN
+  BLOG_POST
+  GALLERY_IMAGE
+  CONTACT
+}
+
 model Contact {
   id           String        @id @default(cuid())
   name         String
@@ -156,4 +172,37 @@ model Contact {
   assignedTo   User?         @relation(fields: [assignedToId], references: [id])
 
   @@map("contacts")
+}
+
+model GalleryImage {
+  id          String    @id @default(cuid())
+  title       String
+  url         String
+  publicId    String
+  category    String?
+  description String?
+  takenAt     DateTime?
+  location    String?
+  createdById String
+  createdAt   DateTime  @default(now())
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@map("gallery_images")
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  entityType    EntityType
+  entityId      String
+  action        AuditAction
+  changedData   Json?
+  performedById String
+  createdAt     DateTime    @default(now())
+
+  performedBy User @relation(fields: [performedById], references: [id])
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

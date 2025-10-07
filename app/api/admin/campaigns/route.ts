@@ -1,8 +1,8 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
-import { UserRole, CampaignStatus } from '@prisma/client'
+import { UserRole, CampaignStatus, AuditAction, EntityType } from '@prisma/client'
+import { logAudit } from '@/lib/audit'
 
 async function getCampaignsHandler(request: NextRequest) {
   try {
@@ -91,6 +91,7 @@ async function createCampaignHandler(request: NextRequest & { user: any }) {
       },
     })
 
+    await logAudit({ entityType: EntityType.CAMPAIGN, entityId: campaign.id, action: AuditAction.CREATE, performedById: request.user.userId, changedData: { title, category, status: status || CampaignStatus.DRAFT } })
     return NextResponse.json({ campaign })
   } catch (error: any) {
     return NextResponse.json(

@@ -5,6 +5,9 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import ScrollToTop from "@/components/ui/scroll-to-top"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Inter } from "next/font/google"
+
+const inter = Inter({ subsets: ["latin"], display: "swap" })
 
 export const metadata: Metadata = {
   title: "The Weather and Everything (TW&E) - Environmental Action NGO",
@@ -34,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-helvetica antialiased">
+      <body className={`${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

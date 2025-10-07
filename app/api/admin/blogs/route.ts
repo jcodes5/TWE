@@ -1,8 +1,8 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
-import { UserRole, PostStatus } from '@prisma/client'
+import { UserRole, PostStatus, AuditAction, EntityType } from '@prisma/client'
+import { logAudit } from '@/lib/audit'
 
 async function getBlogPostsHandler(request: NextRequest) {
   try {
@@ -89,6 +89,7 @@ async function createBlogPostHandler(request: NextRequest & { user: any }) {
       },
     })
 
+    await logAudit({ entityType: EntityType.BLOG_POST, entityId: post.id, action: AuditAction.CREATE, performedById: request.user.userId, changedData: { title, category, status: status || PostStatus.DRAFT } })
     return NextResponse.json({ post })
   } catch (error: any) {
     return NextResponse.json(
