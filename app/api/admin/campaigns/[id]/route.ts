@@ -1,18 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
-import { UserRole, AuditAction, EntityType, CampaignStatus } from '@prisma/client'
+import { UserRole, AuditAction, EntityType, CampaignStatus, UrgencyLevel, ImpactLevel } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+
+async function getCampaignHandler(request: NextRequest & { user: any }, { params }: { params: { id: string } }) {
+  try {
+    const id = params.id
+    const campaign = await prisma.campaign.findUnique({
+      where: { id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            donations: true,
+          },
+        },
+      },
+    })
+
+    if (!campaign) {
+      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ campaign })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to fetch campaign' }, { status: 500 })
+  }
+}
 
 async function updateCampaignHandler(request: NextRequest & { user: any }, { params }: { params: { id: string } }) {
   try {
     const id = params.id
     const body = await request.json()
-    const { title, description, content, image, goal, category, location, status } = body
+    const { title, description, content, image, goal, category, location, status, startDate, endDate, urgency, impactLevel } = body
 
     const campaign = await prisma.campaign.update({
       where: { id },
-      data: { title, description, content, image, goal, category, location, status },
+      data: {
+        title,
+        description,
+        content,
+        image,
+        goal,
+        category,
+        location,
+        status,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        urgency,
+        impactLevel,
+      },
     })
 
     await logAudit({ entityType: EntityType.CAMPAIGN, entityId: id, action: AuditAction.UPDATE, performedById: request.user.userId, changedData: body })
@@ -34,5 +79,6 @@ async function deleteCampaignHandler(request: NextRequest & { user: any }, { par
   }
 }
 
+export const GET = withAuth(getCampaignHandler, [UserRole.ADMIN])
 export const PUT = withAuth(updateCampaignHandler, [UserRole.ADMIN])
 export const DELETE = withAuth(deleteCampaignHandler, [UserRole.ADMIN])

@@ -198,7 +198,7 @@ export default async function AdminDashboardPage() {
                   { name: "Active", value: activeCampaigns },
                   { name: "Draft", value: draftCampaigns },
                   { name: "Completed", value: completedCampaigns }
-                ]} xKey="name" yKey="value" label="Campaigns" />
+                ]} nameKey="name" valueKey="value" />
               </CardContent>
             </Card>
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Sun, Moon, LayoutDashboard } from "lucide-react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -70,16 +71,21 @@ export default function Header() {
   }
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
+    <motion.header
+      className={`fixed top-0 left-0 right-0 z-50  transition-all duration-300 ${
         scrolled
-          ? "bg-background/95 backdrop-blur-sm border-b border-border shadow-sm"
-          : "bg-background/80 backdrop-blur-sm"
+          ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
+          : "bg-transparent backdrop-blur-sm"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 md:h-18">
+        <div className="flex justify-between items-center h-16 md:h-18">
           {/* Logo */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth"})}
+          >
           <Link
             href="/"
             className="flex items-center space-x-3 group"
@@ -99,6 +105,7 @@ export default function Header() {
     <div className="text-sm font-medium text-white dark:text-gray-300">Everything</div>
   </div> */}
           </Link>
+          </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -106,13 +113,14 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
+                className={`text-sm font-medium transition-colors  hover:text-primary ${
                   pathname === item.href
                     ? "text-primary"
                     : "text-muted-foreground"
                 }`}
               >
                 {item.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
               </Link>
             ))}
           </nav>
@@ -152,7 +160,7 @@ export default function Header() {
                 <Link href="/join">
                   <Button
                     size="sm"
-                    className="bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green-light dark:text-green-dark dark:hover:bg-green-light/90"
+                    className="bg-green-dark hover:bg-green-dark/90 text-green-light hover:text-green-light/90 border-green-light/20 hover:border-green-light/90 dark:bg-green-light dark:hover:bg-green-light/90 dark:text-green-dark dark:hover:text-green-dark/90 dark:border-green-light/90"
                   >
                     Join Us
                   </Button>
@@ -241,6 +249,6 @@ export default function Header() {
           </div>
         </div>
       )}
-    </header>
+    </motion.header>
   );
 }

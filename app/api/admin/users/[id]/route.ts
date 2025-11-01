@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
@@ -9,6 +8,21 @@ async function updateUserHandler(request: NextRequest, { params }: { params: { i
     const body = await request.json()
     const { email, firstName, lastName, phone, role, verified } = body
 
+    // Enforce single ADMIN and prevent lockout scenarios
+    if (role === 'ADMIN') {
+      const existingAdmin = await prisma.user.findFirst({ where: { role: 'ADMIN' } })
+      if (existingAdmin && existingAdmin.id !== params.id) {
+        return NextResponse.json({ error: 'An admin user already exists' }, { status: 400 })
+      }
+    } else {
+      const current = await prisma.user.findUnique({ where: { id: params.id } })
+      if (current?.role === 'ADMIN') {
+        const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } })
+        if (adminCount <= 1) {
+          return NextResponse.json({ error: 'Cannot demote the only admin user' }, { status: 400 })
+        }
+      }
+    }
     const user = await prisma.user.update({
       where: { id: params.id },
       data: {
@@ -42,6 +56,13 @@ async function updateUserHandler(request: NextRequest, { params }: { params: { i
 
 async function deleteUserHandler(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const target = await prisma.user.findUnique({ where: { id: params.id } })
+    if (target?.role === 'ADMIN') {
+      const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } })
+      if (adminCount <= 1) {
+        return NextResponse.json({ error: 'Cannot delete the only admin user' }, { status: 400 })
+      }
+    }
     await prisma.user.delete({
       where: { id: params.id },
     })

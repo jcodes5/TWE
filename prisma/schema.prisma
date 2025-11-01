@@ -62,7 +62,14 @@ model Campaign {
   raised      Float          @default(0)
   category    String
   location    String
+  // Geographic coordinates for mapping
+  latitude    Float?
+  longitude   Float?
   status      CampaignStatus @default(DRAFT)
+  startDate   DateTime?
+  endDate     DateTime?
+  urgency     UrgencyLevel   @default(MEDIUM)
+  impactLevel ImpactLevel    @default(REGIONAL)
   createdById String
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -143,6 +150,19 @@ enum ContactStatus {
   ARCHIVED
 }
 
+enum UrgencyLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ImpactLevel {
+  INTERNATIONAL
+  NATIONAL
+  REGIONAL
+  LOCAL
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -155,6 +175,13 @@ enum EntityType {
   BLOG_POST
   GALLERY_IMAGE
   CONTACT
+}
+
+enum ImageStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+  PENDING_REVIEW
 }
 
 model Contact {
@@ -175,7 +202,7 @@ model Contact {
 }
 
 model GalleryImage {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   url         String
   publicId    String
@@ -183,12 +210,24 @@ model GalleryImage {
   description String?
   takenAt     DateTime?
   location    String?
+  altText     String?
+  tags        Json?
+  sortOrder   Int        @default(0)
+  status      ImageStatus @default(ACTIVE)
+  width       Int?
+  height      Int?
+  fileSize    Int?
+  format      String?
+  thumbnailUrl String?
   createdById String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   createdBy User @relation(fields: [createdById], references: [id])
 
   @@index([category])
+  @@index([status])
+  @@index([sortOrder])
   @@map("gallery_images")
 }
 

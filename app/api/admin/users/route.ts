@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
@@ -10,8 +9,19 @@ async function getUsersHandler(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const role = searchParams.get('role')
+    const q = searchParams.get('q') || ''
+    const sortBy = (searchParams.get('sortBy') || 'createdAt') as 'createdAt' | 'firstName' | 'email'
+    const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc'
 
-    const where = role ? { role: role as UserRole } : {}
+    const where: any = {}
+    if (role) where.role = role as UserRole
+    if (q) {
+      where.OR = [
+        { firstName: { contains: q, mode: 'insensitive' } },
+        { lastName: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+      ]
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -28,7 +38,7 @@ async function getUsersHandler(request: NextRequest) {
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: sortOrder },
       }),
       prisma.user.count({ where }),
     ])
@@ -62,6 +72,13 @@ async function createUserHandler(request: NextRequest) {
       )
     }
 
+    // Enforce single ADMIN user
+    if (role === 'ADMIN') {
+      const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } })
+      if (adminCount >= 1) {
+        return NextResponse.json({ error: 'An admin user already exists' }, { status: 400 })
+      }
+    }
     const user = await prisma.user.create({
       data: {
         email,

@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 
+
 if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
   // Do not throw at import time in Next.js to avoid build crashes; validate in route.
 }

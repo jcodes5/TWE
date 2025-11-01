@@ -78,7 +78,7 @@ export default function AboutStory() {
             >
               {/* Icon */}
               <div className="z-10 relative mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-light to-green-dark rounded-full flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition" >
+                <div className="w-20 h-20 bg-gradient-to-br from-green-light to-green-dark rounded-full flex items-center justify-center text-dark shadow-xl group-hover:scale-110 transition" >
                   {milestone.icon}
                 </div>
               </div>

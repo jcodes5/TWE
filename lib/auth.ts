@@ -125,7 +125,14 @@ static verifyRefreshToken(token: string, secret = JWT_REFRESH_SECRET): JWTPayloa
       where: { email },
     })
 
-    if (!user || !(await this.comparePassword(password, user.password))) {
+    if (!user) {
+      console.log(`Login attempt failed: User with email ${email} not found`)
+      throw new Error('Invalid credentials')
+    }
+
+    const passwordMatch = await this.comparePassword(password, user.password)
+    if (!passwordMatch) {
+      console.log(`Login attempt failed: Password mismatch for user ${email}`)
       throw new Error('Invalid credentials')
     }
 

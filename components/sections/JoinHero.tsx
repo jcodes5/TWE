@@ -34,7 +34,7 @@ export default function JoinHero() {
               className="text-4xl md:text-6xl font-hartone font-bold text-foreground leading-tight"
             >
               Join{" "}
-              <span className="bg-gradient-to-r from-green-light to-green-dark bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-light to-green-dark bg -clip-text text-transparent">
                 TW&E
               </span>
             </motion.h1>

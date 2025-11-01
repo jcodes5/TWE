@@ -1,5 +1,7 @@
 "use client";
 
+'use client'
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -83,6 +85,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Top Bar */}
+      <header className="fixed top-0 left-0 right-0 z-30 h-16 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-2 font-semibold">
+          <span className="hidden sm:inline">Admin Dashboard</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={() => {
+            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark'
+            document.documentElement.classList.toggle('dark')
+            try { localStorage.setItem('theme', next) } catch {}
+          }}>
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
+      </header>
+
       {/* Sidebar */}
       <aside
         className={cn(
@@ -140,6 +160,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 "w-full justify-start text-destructive",
                 !isSidebarOpen && "lg:justify-center"
               )}
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/logout', { method: 'POST' })
+                  window.location.href = '/auth/login'
+                } catch {}
+              }}
             >
               <LogOut className="h-4 w-4 mr-2" />
               <span className={cn("truncate", !isSidebarOpen && "lg:hidden")}>

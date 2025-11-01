@@ -130,7 +130,7 @@ export default function TimelineSection() {
                           {event.year}
                         </span>
                       </div>
-                      <h3 className="text-2xl font-semibold text-black dark:text-black mb-2">{event.title}</h3>
+                      <h3 className="text-2xl font-semibold text-black dark:text-white mb-2">{event.title}</h3>
                       <p className="text-gray-600 dark:text-gray-500">{event.description}</p>
                     </div>
                   </div>

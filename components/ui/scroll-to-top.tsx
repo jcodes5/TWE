@@ -40,10 +40,10 @@ export default function ScrollToTop() {
           <Button
             onClick={scrollToTop}
             size="lg"
-            className="rounded-full w-14 h-14 bg-gradient-to-r from-green-dark to-teal hover:from-green-light hover:to-green-dark text-white hover:text-green-dark shadow-lg hover:shadow-xl transition-all duration-300 group"
+            className="rounded-full w-14 h-14 bg-gradient-to-r from-green-dark to-teal hover:from-green-light hover:to-green-dark text-black hover:text-green-dark shadow-lg hover:shadow-xl transition-all duration-300 group"
             aria-label="Scroll to top"
           >
-            <ArrowUp className="h-6 w-6 group-hover:scale-110 transition-transform" />
+            <ArrowUp className="h-6 w-6 group-hover:scale-110 text-white transition-transform" />
           </Button>
         </motion.div>
       )}

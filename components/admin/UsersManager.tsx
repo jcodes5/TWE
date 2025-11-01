@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,30 +29,36 @@ export default function UsersManager() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ email: "", firstName: "", lastName: "", phone: "", role: "VOLUNTEER" as Role, password: "" })
+  const [page, setPage] = useState(1)
+  const [limit] = useState(12)
+  const [totalPages, setTotalPages] = useState(1)
+  const [sortBy, setSortBy] = useState<'createdAt' | 'firstName' | 'email'>('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   async function load() {
     setLoading(true)
-    const qs = roleFilter === "ALL" ? "" : `?role=${roleFilter}`
-    const res = await fetch(`/api/admin/users${qs}`)
+    const params = new URLSearchParams()
+    if (roleFilter !== 'ALL') params.set('role', roleFilter)
+    if (searchQuery) params.set('q', searchQuery)
+    params.set('page', String(page))
+    params.set('limit', String(limit))
+    params.set('sortBy', sortBy)
+    params.set('sortOrder', sortOrder)
+    const res = await fetch(`/api/admin/users?${params.toString()}`)
     const data = await res.json()
     setUsers(data.users || [])
+    setTotalPages(data.pagination?.pages || 1)
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [roleFilter])
+  useEffect(() => { load() }, [roleFilter, page, sortBy, sortOrder])
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      const matchesSearch = 
-        user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      const matchesRole = roleFilter === "ALL" || user.role === roleFilter
-      
-      return matchesSearch && matchesRole
-    })
-  }, [users, searchQuery, roleFilter])
+  useEffect(() => {
+    const t = setTimeout(() => { setPage(1); load() }, 300)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
+  const filteredUsers = useMemo(() => users, [users])
 
   async function createUser() {
     const res = await fetch("/api/admin/users", {
@@ -98,7 +106,34 @@ export default function UsersManager() {
           </div>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </div>
+          <div className="flex gap-2">
+            <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+              <SelectTrigger className="w-36"><SelectValue placeholder="Sort by" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt">Created</SelectItem>
+                <SelectItem value="firstName">First name</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortOrder} onValueChange={(v: any) => setSortOrder(v)}>
+              <SelectTrigger className="w-28"><SelectValue placeholder="Order" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Desc</SelectItem>
+                <SelectItem value="asc">Asc</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Prev</Button>
+              <Button variant="outline" size="sm" disabled={page>=totalPages} onClick={()=>setPage(p=>p+1)}>Next</Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="border rounded-lg mt-3">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
             {filteredUsers.map(user => (
               <Card key={user.id} className="hover:shadow-md transition-shadow">
@@ -162,7 +197,6 @@ export default function UsersManager() {
               <SelectContent>
                 <SelectItem value="VOLUNTEER">Volunteer</SelectItem>
                 <SelectItem value="SPONSOR">Sponsor</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
               </SelectContent>
             </Select>
             <Input

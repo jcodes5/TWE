@@ -2,78 +2,174 @@
 
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect, useCallback, useMemo } from "react"
 import { MapPin, Users, Target } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { getCampaignMapData } from "@/lib/location-coordinates"
 
-const mapLocations = [
-  {
-    id: 1,
-    name: "Ocean Cleanup Initiative",
-    location: "Pacific Coast",
-    coordinates: { x: 15, y: 45 },
-    participants: 1250,
-    category: "Conservation",
-    status: "Active",
-    description: "Removing plastic waste from ocean waters",
-  },
-  {
-    id: 2,
-    name: "Amazon Reforestation",
-    location: "Brazil",
-    coordinates: { x: 35, y: 70 },
-    participants: 890,
-    category: "Climate Action",
-    status: "Active",
-    description: "Planting native trees in deforested areas",
-  },
-  {
-    id: 3,
-    name: "Solar Energy Project",
-    location: "Morocco",
-    coordinates: { x: 50, y: 35 },
-    participants: 567,
-    category: "Renewable Energy",
-    status: "Active",
-    description: "Installing solar panels in rural communities",
-  },
-  {
-    id: 4,
-    name: "Water Conservation",
-    location: "India",
-    coordinates: { x: 75, y: 40 },
-    participants: 1100,
-    category: "Water Resources",
-    status: "Active",
-    description: "Implementing water-saving technologies",
-  },
-  {
-    id: 5,
-    name: "Urban Gardens",
-    location: "Netherlands",
-    coordinates: { x: 52, y: 25 },
-    participants: 445,
-    category: "Sustainable Agriculture",
-    status: "Active",
-    description: "Creating green spaces in urban areas",
-  },
-  {
-    id: 6,
-    name: "Coral Restoration",
-    location: "Australia",
-    coordinates: { x: 85, y: 75 },
-    participants: 678,
-    category: "Conservation",
-    status: "Active",
-    description: "Restoring damaged coral reef ecosystems",
-  },
-]
+type CampaignMapData = {
+  id: string
+  name: string
+  location: string
+  coordinates: { x: number; y: number }
+  participants: number
+  category: string
+  status: string
+  description: string
+}
 
-export default function CampaignsMap() {
+interface CampaignsMapProps {
+  filters?: {
+    q?: string
+    category?: string
+    location?: string
+    urgency?: string
+    impactLevel?: string
+  }
+}
+
+export default function CampaignsMap({ filters = {} }: CampaignsMapProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const [selectedLocation, setSelectedLocation] = useState<(typeof mapLocations)[0] | null>(null)
+  const [campaignLocations, setCampaignLocations] = useState<CampaignMapData[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<CampaignMapData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastFiltersKey, setLastFiltersKey] = useState("")
+
+  // Memoize the current filters to create a stable dependency key
+  const currentFiltersKey = useMemo(() => {
+    const params = {
+      q: filters.q || "",
+      category: filters.category || "all",
+      location: filters.location || "all",
+      urgency: filters.urgency || "all",
+      impactLevel: filters.impactLevel || "all"
+    }
+    return Object.values(params).join("|")
+  }, [filters.q, filters.category, filters.location, filters.urgency, filters.impactLevel])
+
+  // Debounced load function
+  const loadCampaignData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (filters.q) params.set('q', filters.q)
+      if (filters.category && filters.category !== 'all') params.set('category', filters.category)
+      if (filters.location && filters.location !== 'all') params.set('location', filters.location)
+      if (filters.urgency && filters.urgency !== 'all') params.set('urgency', filters.urgency)
+      if (filters.impactLevel && filters.impactLevel !== 'all') params.set('impactLevel', filters.impactLevel)
+      
+      const response = await fetch(`/api/campaigns/map?${params.toString()}`, {
+        headers: {
+          'Cache-Control': 'max-age=30' // Cache for 30 seconds
+        }
+      })
+      const data = await response.json()
+      
+      if (response.ok && data.campaigns) {
+        setCampaignLocations(data.campaigns)
+        
+        // Select the first campaign by default
+        if (data.campaigns.length > 0) {
+          setSelectedLocation(data.campaigns[0])
+        }
+      } else {
+        throw new Error(data.error || 'Failed to load campaigns')
+      }
+    } catch (err) {
+      console.error('Failed to load campaign map data:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load campaigns')
+    } finally {
+      setLoading(false)
+    }
+  }, [filters])
+
+  // Load campaigns for the map with debouncing
+  useEffect(() => {
+    // Only load if filters have actually changed
+    if (currentFiltersKey !== lastFiltersKey) {
+      setLastFiltersKey(currentFiltersKey)
+      
+      // Debounce the API call to prevent rapid successive calls
+      const timeoutId = setTimeout(() => {
+        loadCampaignData()
+      }, 200) // 200ms debounce
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [currentFiltersKey, lastFiltersKey, loadCampaignData])
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-green-light hover:bg-green-dark'
+      case 'COMPLETED':
+        return 'bg-blue-100 hover:bg-blue-200'
+      default:
+        return 'bg-gray-100 hover:bg-gray-200'
+    }
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-dark mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading campaign map...</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400 text-lg mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-green-light hover:bg-green-dark text-green-dark hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Empty state
+  if (campaignLocations.length === 0) {
+    return (
+      <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-white mb-6">
+              Global Impact Map
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              No active campaigns to display at the moment. Check back soon!
+            </p>
+          </motion.div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
@@ -120,7 +216,7 @@ export default function CampaignsMap() {
                 </div>
 
                 {/* Campaign Markers */}
-                {mapLocations.map((location, index) => (
+                {campaignLocations.map((location, index) => (
                   <motion.div
                     key={location.id}
                     initial={{ opacity: 0, scale: 0 }}
@@ -235,17 +331,19 @@ export default function CampaignsMap() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300 text-sm">Active Campaigns</span>
-                    <span className="font-semibold text-green-dark dark:text-green-light">{mapLocations.length}</span>
+                    <span className="font-semibold text-green-dark dark:text-green-light">{campaignLocations.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300 text-sm">Total Participants</span>
                     <span className="font-semibold text-green-dark dark:text-green-light">
-                      {mapLocations.reduce((sum, loc) => sum + loc.participants, 0).toLocaleString()}
+                      {campaignLocations.reduce((sum, loc) => sum + loc.participants, 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-300 text-sm">Countries</span>
-                    <span className="font-semibold text-green-dark dark:text-green-light">25+</span>
+                    <span className="font-semibold text-green-dark dark:text-green-light">
+                      {new Set(campaignLocations.map(loc => loc.location)).size}+
+                    </span>
                   </div>
                 </div>
               </CardContent>

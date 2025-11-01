@@ -113,7 +113,7 @@ export default function Hero() {
               <Link href="/join">
                 <Button
                   size="lg"
-                  className="bg-green-dark hover:bg-green-dark/90 text-white dark:bg-green-light dark:text-green-dark dark:hover:bg-green-light/90 px-8 py-6 text-lg font-semibold group"
+                  className="bg-green-dark hover:bg-green-dark/90 text-green-light dark:text-green-light dark:hover:bg-green-light/90 px-8 py-6 text-lg font-semibold group"
                 >
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

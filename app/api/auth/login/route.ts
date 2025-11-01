@@ -55,27 +55,19 @@ export async function POST(request: NextRequest) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
     })
 
-    response.cookies.set('userRole', user.role, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60,
-    })
-
     return response
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error)
-
-    if (error instanceof ZodError) {
+    
+    if (error.message === 'Invalid credentials') {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
+        { error: 'Invalid credentials', details: 'Incorrect email or password' },
+        { status: 401 }
       )
     }
-
+    
     return NextResponse.json(
-      { error: 'Internal server error', details: 'Unexpected error during login' },
+      { error: 'Internal server error', details: 'An unexpected error occurred during login' },
       { status: 500 }
     )
   }
