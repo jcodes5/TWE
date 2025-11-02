@@ -174,6 +174,7 @@ export default function CampaignManager() {
             }} />
             <Button type="button" variant="outline" onClick={() => document.getElementById('campaign-image-file')?.click()}>Upload</Button>
           </div>
+          
           <Textarea placeholder="Short description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <Textarea placeholder="Content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className="min-h-32" />
           <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Campaign["status"] })}>

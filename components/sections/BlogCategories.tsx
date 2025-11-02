@@ -2,22 +2,128 @@
 
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
-import { useRef, useState } from "react"
-import { Leaf, Droplets, Sun, Recycle, Globe, Zap } from 'lucide-react'
+import { useRef, useState, useEffect } from "react"
+import { Leaf, Droplets, Sun, Recycle, Globe, Zap, AlertCircle, Loader2 } from 'lucide-react'
+import { FALLBACK_CATEGORIES, getCategoryMetadata } from '@/lib/categories'
 
-const categories = [
-  { name: "All", icon: <Globe className="h-5 w-5" />, count: 124, color: "from-gray-400 to-gray-600" },
-  { name: "Climate Science", icon: <Sun className="h-5 w-5" />, count: 32, color: "from-yellow-400 to-orange-500" },
-  { name: "Renewable Energy", icon: <Zap className="h-5 w-5" />, count: 28, color: "from-blue-400 to-cyan-500" },
-  { name: "Conservation", icon: <Leaf className="h-5 w-5" />, count: 24, color: "from-green-400 to-green-600" },
-  { name: "Water Resources", icon: <Droplets className="h-5 w-5" />, count: 18, color: "from-blue-500 to-teal-500" },
-  { name: "Sustainability", icon: <Recycle className="h-5 w-5" />, count: 22, color: "from-purple-400 to-purple-600" },
-]
+interface CategoryData {
+  name: string
+  icon: string
+  count: number
+  color: string
+}
 
 export default function BlogCategories() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
   const [activeCategory, setActiveCategory] = useState("All")
+  const [categories, setCategories] = useState<CategoryData[]>(FALLBACK_CATEGORIES.map(cat => ({
+    name: cat.name,
+    icon: cat.icon === Globe ? 'Globe' : cat.icon === Sun ? 'Sun' : cat.icon === Zap ? 'Zap' : cat.icon === Leaf ? 'Leaf' : cat.icon === Droplets ? 'Droplets' : 'Recycle',
+    count: cat.count || 0,
+    color: cat.color
+  })))
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/categories/blog')
+        if (!response.ok) throw new Error('Failed to fetch categories')
+        
+        const data = await response.json()
+        const fetchedCategories = data.categories.map((cat: any) => ({
+          name: cat.name,
+          icon: cat.icon,
+          count: cat.count,
+          color: cat.color
+        }))
+        
+        setCategories(fetchedCategories)
+        setError(null)
+      } catch (err) {
+        console.error('Failed to fetch categories:', err)
+        setError('Failed to load categories')
+        // Keep fallback categories
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  // Get icon component based on icon name
+  const getIcon = (iconName: string) => {
+    const iconProps = { className: "h-5 w-5" }
+    
+    switch (iconName) {
+      case 'Sun': return <Sun {...iconProps} />
+      case 'Zap': return <Zap {...iconProps} />
+      case 'Leaf': return <Leaf {...iconProps} />
+      case 'Droplets': return <Droplets {...iconProps} />
+      case 'Recycle': return <Recycle {...iconProps} />
+      default: return <Globe {...iconProps} />
+    }
+  }
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl lg:text-4xl font-hartone font-bold text-black dark:text-white mb-4">
+              Browse by Category
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Explore articles organized by environmental topics and areas of focus.
+            </p>
+          </motion.div>
+          
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-green-dark" />
+            <span className="ml-2 text-lg text-gray-600 dark:text-gray-300">Loading categories...</span>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl lg:text-4xl font-hartone font-bold text-black dark:text-white mb-4">
+              Browse by Category
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Explore articles organized by environmental topics and areas of focus.
+            </p>
+          </motion.div>
+          
+          <div className="flex items-center justify-center py-16">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+            <span className="ml-2 text-lg text-gray-600 dark:text-gray-300">Error loading categories</span>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section ref={ref} className="py-20 bg-white dark:bg-gray-900">
@@ -58,7 +164,7 @@ export default function BlogCategories() {
                       : `bg-gradient-to-r ${category.color}`
                   } text-white`}
                 >
-                  {category.icon}
+                  {getIcon(category.icon)}
                 </div>
                 <div className="text-center">
                   <h3 className="font-semibold text-sm mb-1">{category.name}</h3>

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,28 +8,24 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  firstName String
-  lastName  String
-  phone     String?
-  password  String
-  role      UserRole @default(VOLUNTEER)
-  verified  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Auth tokens
-  refreshTokens RefreshToken[]
-
-  // Related data
-  campaigns        Campaign[]
-  donations        Donation[]
+  id               String         @id @default(cuid())
+  email            String         @unique
+  firstName        String
+  lastName         String
+  phone            String?
+  password         String
+  role             UserRole       @default(VOLUNTEER)
+  verified         Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  auditLogs        AuditLog[]
   blogPosts        BlogPost[]
+  campaigns        Campaign[]
   comments         Comment[]
   assignedContacts Contact[]
+  donations        Donation[]
   createdImages    GalleryImage[]
-  auditLogs        AuditLog[]
+  refreshTokens    RefreshToken[]
 
   @@map("users")
 }
@@ -46,9 +36,9 @@ model RefreshToken {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId], map: "refresh_tokens_userId_fkey")
   @@map("refresh_tokens")
 }
 
@@ -62,21 +52,20 @@ model Campaign {
   raised      Float          @default(0)
   category    String
   location    String
-  // Geographic coordinates for mapping
-  latitude    Float?
-  longitude   Float?
   status      CampaignStatus @default(DRAFT)
-  startDate   DateTime?
-  endDate     DateTime?
-  urgency     UrgencyLevel   @default(MEDIUM)
-  impactLevel ImpactLevel    @default(REGIONAL)
   createdById String
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  endDate     DateTime?
+  impactLevel ImpactLevel    @default(REGIONAL)
+  startDate   DateTime?
+  urgency     UrgencyLevel   @default(MEDIUM)
+  latitude    Float?
+  longitude   Float?
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  donations   Donation[]
 
-  createdBy User       @relation(fields: [createdById], references: [id])
-  donations Donation[]
-
+  @@index([createdById], map: "campaigns_createdById_fkey")
   @@map("campaigns")
 }
 
@@ -86,10 +75,11 @@ model Donation {
   campaignId String
   userId     String
   createdAt  DateTime @default(now())
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
-  user     User     @relation(fields: [userId], references: [id])
-
+  @@index([campaignId], map: "donations_campaignId_fkey")
+  @@index([userId], map: "donations_userId_fkey")
   @@map("donations")
 }
 
@@ -104,10 +94,10 @@ model BlogPost {
   authorId  String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  author    User       @relation(fields: [authorId], references: [id])
+  comments  Comment[]
 
-  author   User      @relation(fields: [authorId], references: [id])
-  comments Comment[]
-
+  @@index([authorId], map: "blog_posts_authorId_fkey")
   @@map("blog_posts")
 }
 
@@ -117,11 +107,75 @@ model Comment {
   postId    String
   userId    String
   createdAt DateTime @default(now())
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 
-  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User     @relation(fields: [userId], references: [id])
-
+  @@index([postId], map: "comments_postId_fkey")
+  @@index([userId], map: "comments_userId_fkey")
   @@map("comments")
+}
+
+model Contact {
+  id           String        @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
+  organization String?
+  subject      String
+  message      String
+  inquiryType  String
+  status       ContactStatus @default(NEW)
+  createdAt    DateTime      @default(now())
+  assignedToId String?
+  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
+
+  @@index([assignedToId], map: "contacts_assignedToId_fkey")
+  @@map("contacts")
+}
+
+model GalleryImage {
+  id           String      @id @default(cuid())
+  title        String
+  url          String
+  publicId     String
+  category     String?
+  description  String?
+  takenAt      DateTime?
+  location     String?
+  createdById  String
+  createdAt    DateTime    @default(now())
+  altText      String?
+  fileSize     Int?
+  format       String?
+  height       Int?
+  sortOrder    Int         @default(0)
+  status       ImageStatus @default(ACTIVE)
+  tags         Json?
+  thumbnailUrl String?
+  updatedAt    DateTime    @updatedAt
+  width        Int?
+  createdBy    User        @relation(fields: [createdById], references: [id])
+
+  @@index([category])
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdById], map: "gallery_images_createdById_fkey")
+  @@map("gallery_images")
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  entityType    EntityType
+  entityId      String
+  action        AuditAction
+  changedData   Json?
+  performedById String
+  createdAt     DateTime    @default(now())
+  performedBy   User        @relation(fields: [performedById], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([performedById], map: "audit_logs_performedById_fkey")
+  @@map("audit_logs")
 }
 
 enum UserRole {
@@ -182,66 +236,4 @@ enum ImageStatus {
   INACTIVE
   ARCHIVED
   PENDING_REVIEW
-}
-
-model Contact {
-  id           String        @id @default(cuid())
-  name         String
-  email        String
-  phone        String?
-  organization String?
-  subject      String
-  message      String
-  inquiryType  String
-  status       ContactStatus @default(NEW)
-  createdAt    DateTime      @default(now())
-  assignedToId String?
-  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
-
-  @@map("contacts")
-}
-
-model GalleryImage {
-  id          String     @id @default(cuid())
-  title       String
-  url         String
-  publicId    String
-  category    String?
-  description String?
-  takenAt     DateTime?
-  location    String?
-  altText     String?
-  tags        Json?
-  sortOrder   Int        @default(0)
-  status      ImageStatus @default(ACTIVE)
-  width       Int?
-  height      Int?
-  fileSize    Int?
-  format      String?
-  thumbnailUrl String?
-  createdById String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  createdBy User @relation(fields: [createdById], references: [id])
-
-  @@index([category])
-  @@index([status])
-  @@index([sortOrder])
-  @@map("gallery_images")
-}
-
-model AuditLog {
-  id            String      @id @default(cuid())
-  entityType    EntityType
-  entityId      String
-  action        AuditAction
-  changedData   Json?
-  performedById String
-  createdAt     DateTime    @default(now())
-
-  performedBy User @relation(fields: [performedById], references: [id])
-
-  @@index([entityType, entityId])
-  @@map("audit_logs")
 }

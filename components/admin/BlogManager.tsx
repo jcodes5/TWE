@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { AVAILABLE_CATEGORIES } from '@/lib/categories'
 
 type Post = {
   id: string
@@ -24,7 +25,9 @@ type Post = {
 export default function BlogManager() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({ title: "", content: "", excerpt: "", image: "", category: "General", status: "DRAFT" as Post["status"] })
+  const [creating, setCreating] = useState(false)
+  const [error, setError] = useState("")
+  const [form, setForm] = useState({ title: "", content: "", excerpt: "", image: "", category: "Climate Science", status: "DRAFT" as Post["status"] })
 
   async function load() {
     setLoading(true)
@@ -43,7 +46,7 @@ export default function BlogManager() {
       body: JSON.stringify(form),
     })
     if (res.ok) {
-      setForm({ title: "", content: "", excerpt: "", image: "", category: "General", status: "DRAFT" })
+      setForm({ title: "", content: "", excerpt: "", image: "", category: "Climate Science", status: "DRAFT" })
       await load()
     }
   }
@@ -56,8 +59,28 @@ export default function BlogManager() {
         </CardHeader>
         <CardContent className="space-y-3">
           <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <Input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-          <Input placeholder="Image URL" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+            <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+            <SelectContent>
+              {AVAILABLE_CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2">
+            <Input placeholder="Image URL" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+            <input id="blog-image-file" type="file" accept="image/*" className="hidden" title="Upload blog image" onChange={async (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0]
+              if (!file) return
+              try {
+                const fd = new FormData(); fd.append('file', file)
+                const up = await fetch('/api/admin/gallery/upload', { method: 'POST', body: fd })
+                const json = await up.json()
+                if (up.ok && json.url) setForm(f => ({ ...f, image: json.url }))
+              } catch {}
+            }} />
+            <Button type="button" variant="outline" onClick={() => document.getElementById('campaign-blog-file')?.click()}>Upload</Button>
+          </div>
           <Textarea placeholder="Excerpt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />
           <Textarea placeholder="Content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className="min-h-32" />
           <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Post["status"] })}>

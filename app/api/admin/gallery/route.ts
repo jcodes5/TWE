@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
-import { UserRole, AuditAction, EntityType } from '@prisma/client'
+import { UserRole, AuditAction, EntityType, Prisma } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
 
 async function getGalleryHandler(request: NextRequest) {
@@ -118,7 +118,7 @@ async function createGalleryHandler(request: NextRequest & { user: any }) {
         category: category || null,
         description: description || null,
         altText: altText || null,
-        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : null,
+        tags: tags ? (Array.isArray(tags) ? tags : [tags]) : Prisma.JsonNull,
         takenAt: takenAt ? new Date(takenAt) : null,
         location: location || null,
         width: width || null,

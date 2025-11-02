@@ -1,6 +1,7 @@
 import BlogHero from "@/components/sections/BlogHero"
 import BlogCategories from "@/components/sections/BlogCategories"
-import BlogGridClient, { BlogPostItem } from "@/components/sections/BlogGridClient"
+import BlogGridClient from "@/components/sections/BlogGridClient"
+import { BlogPostItem } from '@/hooks/useBlogFilter'
 import { prisma } from "@/lib/database"
 import { PostStatus } from "@prisma/client"
 
