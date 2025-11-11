@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, AuditAction, EntityType } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { notificationWebSocket } from '@/lib/websocket'
 
 async function updateGalleryHandler(request: NextRequest & { user: any }, { params }: { params: { id: string } }) {
   try {
@@ -104,12 +105,22 @@ async function updateGalleryHandler(request: NextRequest & { user: any }, { para
     })
 
     if (Object.keys(changedData).length > 0) {
-      await logAudit({ 
-        entityType: EntityType.GALLERY_IMAGE, 
-        entityId: id, 
-        action: AuditAction.UPDATE, 
-        performedById: request.user.userId, 
-        changedData 
+      await logAudit({
+        entityType: EntityType.GALLERY_IMAGE,
+        entityId: id,
+        action: AuditAction.UPDATE,
+        performedById: request.user.userId,
+        changedData
+      })
+
+      // Broadcast real-time update
+      notificationWebSocket.broadcastGalleryUpdate({
+        action: 'update',
+        imageId: id,
+        title: image.title,
+        category: image.category,
+        changes: Object.keys(changedData),
+        message: `Image "${image.title}" was updated`
       })
     }
 
@@ -142,20 +153,29 @@ async function deleteGalleryHandler(request: NextRequest & { user: any }, { para
     await prisma.galleryImage.delete({ where: { id } })
 
     // Log audit trail
-    await logAudit({ 
-      entityType: EntityType.GALLERY_IMAGE, 
-      entityId: id, 
-      action: AuditAction.DELETE, 
-      performedById: request.user.userId, 
-      changedData: { 
-        publicId: img.publicId, 
+    await logAudit({
+      entityType: EntityType.GALLERY_IMAGE,
+      entityId: id,
+      action: AuditAction.DELETE,
+      performedById: request.user.userId,
+      changedData: {
+        publicId: img.publicId,
         title: img.title,
         category: img.category,
         url: img.url
-      } 
+      }
     })
 
-    return NextResponse.json({ 
+    // Broadcast real-time update
+    notificationWebSocket.broadcastGalleryUpdate({
+      action: 'delete',
+      imageId: id,
+      title: img.title,
+      category: img.category,
+      message: `Image "${img.title}" was deleted`
+    })
+
+    return NextResponse.json({
       message: 'Gallery image deleted successfully',
       deletedImage: {
         id,

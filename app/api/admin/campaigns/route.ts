@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, CampaignStatus, AuditAction, EntityType } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { createAndBroadcastNotification } from '@/lib/websocket'
 
 // Define enum types inline since Prisma client hasn't been regenerated
 enum UrgencyLevel {
@@ -144,6 +145,14 @@ async function createCampaignHandler(request: NextRequest & { user: any }) {
     })
 
     await logAudit({ entityType: EntityType.CAMPAIGN, entityId: campaign.id, action: AuditAction.CREATE, performedById: request.user.userId, changedData: { title, category, status: status || CampaignStatus.DRAFT } })
+
+    // Create notification for new campaign creation
+    await createAndBroadcastNotification(
+      "New Campaign Created",
+      `Campaign "${title}" has been created and is ${status || CampaignStatus.DRAFT}`,
+      "SUCCESS"
+    )
+
     return NextResponse.json({ campaign })
   } catch (error: any) {
     return NextResponse.json(

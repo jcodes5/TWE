@@ -21,6 +21,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  Camera,
 } from "lucide-react";
 import { useTheme } from "next-themes"
 
@@ -48,6 +49,11 @@ const sidebarLinks = [
     title: "Blog Posts",
     href: "/dashboard/admin/posts",
     icon: FileText,
+  },
+  {
+    title: "Gallery",
+    href: "/dashboard/admin/gallery",
+    icon: Camera,
   },
   {
     title: "Messages",

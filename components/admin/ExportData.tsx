@@ -9,15 +9,27 @@ import { toast } from "@/hooks/use-toast"
 
 export default function ExportData() {
   const [exportType, setExportType] = useState("users")
+  const [exportFormat, setExportFormat] = useState("csv")
   const [loading, setLoading] = useState(false)
 
   const handleExport = async () => {
     setLoading(true)
     try {
-      // In a real implementation, this would call your API endpoints
-      // For now, we'll just simulate the export
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      const response = await fetch(`/api/admin/export/${exportType}?format=${exportFormat}`)
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${exportType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
       toast({
         title: "Export Successful",
         description: `Your ${exportType} data has been exported successfully.`,
@@ -60,8 +72,19 @@ export default function ExportData() {
               </SelectContent>
             </Select>
           </div>
-          <Button 
-            onClick={handleExport} 
+          <div className="flex-1">
+            <Select value={exportFormat} onValueChange={setExportFormat}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select format" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="csv">CSV</SelectItem>
+                <SelectItem value="json">JSON</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={handleExport}
             disabled={loading}
             className="flex items-center gap-2"
           >

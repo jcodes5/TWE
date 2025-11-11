@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, AuditAction, EntityType, CampaignStatus, UrgencyLevel, ImpactLevel } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { createAndBroadcastNotification } from '@/lib/websocket'
 
 async function getCampaignHandler(request: NextRequest & { user: any }, { params }: { params: { id: string } }) {
   try {
@@ -61,6 +62,15 @@ async function updateCampaignHandler(request: NextRequest & { user: any }, { par
     })
 
     await logAudit({ entityType: EntityType.CAMPAIGN, entityId: id, action: AuditAction.UPDATE, performedById: request.user.userId, changedData: body })
+
+    // Create notification for campaign status changes
+    if (status && status !== campaign.status) {
+      await createAndBroadcastNotification(
+        "Campaign Status Updated",
+        `Campaign "${campaign.title}" status changed to ${status}`,
+        status === "ACTIVE" ? "SUCCESS" : "WARNING"
+      )
+    }
 
     return NextResponse.json({ campaign })
   } catch (error: any) {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, AuditAction, EntityType, Prisma } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { notificationWebSocket } from '@/lib/websocket'
 
 async function getGalleryHandler(request: NextRequest) {
   try {
@@ -132,12 +133,21 @@ async function createGalleryHandler(request: NextRequest & { user: any }) {
       },
     })
 
-    await logAudit({ 
-      entityType: EntityType.GALLERY_IMAGE, 
-      entityId: image.id, 
-      action: AuditAction.CREATE, 
-      performedById: request.user.userId, 
+    await logAudit({
+      entityType: EntityType.GALLERY_IMAGE,
+      entityId: image.id,
+      action: AuditAction.CREATE,
+      performedById: request.user.userId,
       changedData: { title, category, location, status }
+    })
+
+    // Broadcast real-time update
+    notificationWebSocket.broadcastGalleryUpdate({
+      action: 'create',
+      imageId: image.id,
+      title: image.title,
+      category: image.category,
+      message: `New image "${image.title}" was uploaded`
     })
 
     return NextResponse.json({ image })

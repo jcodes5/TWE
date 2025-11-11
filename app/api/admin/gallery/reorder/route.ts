@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, AuditAction, EntityType } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { notificationWebSocket } from '@/lib/websocket'
 
 interface SortOrderUpdate {
   id: string
@@ -82,6 +83,15 @@ async function reorderHandler(request: NextRequest & { user: any }) {
 
     const successCount = results.length
     const errorCount = errors.length
+
+    // Broadcast real-time update for reorder operation
+    if (successCount > 0) {
+      notificationWebSocket.broadcastGalleryUpdate({
+        action: 'reorder',
+        message: `Gallery images were reordered (${successCount} items)`,
+        affectedCount: successCount
+      })
+    }
 
     return NextResponse.json({
       message: `Reorder operation completed. ${successCount} successful, ${errorCount} failed.`,

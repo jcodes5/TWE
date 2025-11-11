@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole } from '@prisma/client'
+import { notificationWebSocket } from '@/lib/websocket'
+import { Prisma } from '@prisma/client'
 
 async function analyticsHandler(request: NextRequest & { user: any }) {
   try {
@@ -79,12 +81,12 @@ async function analyticsHandler(request: NextRequest & { user: any }) {
 
       // Uploads by date (for timeline chart)
       prisma.$queryRaw`
-        SELECT 
+        SELECT
           DATE(createdAt) as date,
           COUNT(*) as count
-        FROM gallery_images 
+        FROM gallery_images
         WHERE createdAt >= ${startDate}
-        ${category ? prisma.$queryRaw`AND category = ${category}` : prisma.$queryRaw``}
+        ${category ? Prisma.sql`AND category = ${category}` : Prisma.empty}
         GROUP BY DATE(createdAt)
         ORDER BY date ASC
       `,

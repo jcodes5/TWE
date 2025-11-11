@@ -1,71 +1,150 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Bell, X, CheckCircle, AlertTriangle, Info } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 
 interface Notification {
   id: string
   title: string
   description: string
-  timestamp: string
-  type: "info" | "warning" | "success"
+  createdAt: string
+  type: "INFO" | "WARNING" | "SUCCESS"
   read: boolean
 }
 
 export default function NotificationsPanel() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "New User Registration",
-      description: "A new volunteer has registered: John Doe",
-      timestamp: "2 minutes ago",
-      type: "info",
-      read: false
-    },
-    {
-      id: "2",
-      title: "Campaign Update Required",
-      description: "Climate Action campaign needs your attention",
-      timestamp: "1 hour ago",
-      type: "warning",
-      read: false
-    },
-    {
-      id: "3",
-      title: "Donation Received",
-      description: "$500 donation received for Reforestation project",
-      timestamp: "3 hours ago",
-      type: "success",
-      read: true
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isConnected, setIsConnected] = useState(false)
+  const wsRef = useRef<WebSocket | null>(null)
+
+  // Fetch initial notifications
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  // WebSocket connection
+  useEffect(() => {
+    connectWebSocket()
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
     }
-  ])
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch("/api/admin/notifications")
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data)
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error)
+    }
+  }
+
+  const connectWebSocket = () => {
+    try {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+      const wsUrl = `${protocol}//${window.location.host}/api/ws/notifications`
+
+      const ws = new WebSocket(wsUrl)
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        console.log("WebSocket connected")
+        setIsConnected(true)
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          if (message.type === "notification") {
+            setNotifications(prev => [message.data, ...prev])
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error)
+        }
+      }
+
+      ws.onclose = () => {
+        console.log("WebSocket disconnected")
+        setIsConnected(false)
+        // Attempt to reconnect after 5 seconds
+        setTimeout(connectWebSocket, 5000)
+      }
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error)
+        setIsConnected(false)
+      }
+    } catch (error) {
+      console.error("Error connecting to WebSocket:", error)
+    }
+  }
 
   const unreadCount = notifications.filter(n => !n.read).length
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ))
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/notifications/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ read: true }),
+      })
+
+      if (response.ok) {
+        setNotifications(notifications.map(n =>
+          n.id === id ? { ...n, read: true } : n
+        ))
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error)
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })))
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read)
+      await Promise.all(
+        unreadNotifications.map(n => markAsRead(n.id))
+      )
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error)
+    }
   }
 
-  const removeNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id))
+  const removeNotification = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/notifications/${id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setNotifications(notifications.filter(n => n.id !== id))
+      }
+    } catch (error) {
+      console.error("Error removing notification:", error)
+    }
   }
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "success": return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "warning": return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      case "SUCCESS": return <CheckCircle className="h-4 w-4 text-green-500" />
+      case "WARNING": return <AlertTriangle className="h-4 w-4 text-yellow-500" />
       default: return <Info className="h-4 w-4 text-blue-500" />
     }
+  }
+
+  const formatTimestamp = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true })
   }
 
   return (
@@ -137,7 +216,7 @@ export default function NotificationsPanel() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                      {notification.timestamp}
+                      {formatTimestamp(notification.createdAt)}
                     </p>
                     {!notification.read && (
                       <Badge variant="secondary" className="h-2 w-2 p-0 rounded-full" />

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database'
 import { withAuth } from '@/lib/middleware/auth'
 import { UserRole, AuditAction, EntityType } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
+import { notificationWebSocket } from '@/lib/websocket'
 
 interface BatchOperation {
   type: 'delete' | 'status_change' | 'category_change' | 'tag_operations'
@@ -97,6 +98,23 @@ async function batchOperationHandler(request: NextRequest & { user: any }) {
 
     const successCount = results.length
     const errorCount = errors.length
+
+    // Broadcast real-time update for batch operation
+    if (successCount > 0) {
+      const operationMessages = {
+        delete: `Batch delete operation completed (${successCount} images)`,
+        status_change: `Batch status change completed (${successCount} images)`,
+        category_change: `Batch category change completed (${successCount} images)`,
+        tag_operations: `Batch tag operation completed (${successCount} images)`
+      }
+
+      notificationWebSocket.broadcastGalleryUpdate({
+        action: 'batch_operation',
+        operationType: type,
+        message: operationMessages[type as keyof typeof operationMessages] || `Batch operation completed (${successCount} items)`,
+        affectedCount: successCount
+      })
+    }
 
     return NextResponse.json({
       message: `Batch operation completed. ${successCount} successful, ${errorCount} failed.`,

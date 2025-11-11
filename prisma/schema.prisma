@@ -86,7 +86,7 @@ model Donation {
 model BlogPost {
   id        String     @id @default(cuid())
   title     String
-  content   String
+  content   String     @db.Text
   excerpt   String?
   image     String?
   category  String
@@ -223,17 +223,49 @@ enum AuditAction {
   DELETE
 }
 
-enum EntityType {
-  USER
-  CAMPAIGN
-  BLOG_POST
-  GALLERY_IMAGE
-  CONTACT
-}
 
 enum ImageStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
   PENDING_REVIEW
+}
+
+model Notification {
+  id          String            @id @default(cuid())
+  title       String
+  description String
+  type        NotificationType  @default(INFO)
+  read        Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?
+  category    String   @default("general")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+enum EntityType {
+  USER
+  CAMPAIGN
+  BLOG_POST
+  GALLERY_IMAGE
+  CONTACT
+  SETTING
 }

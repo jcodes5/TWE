@@ -40,14 +40,25 @@ export default function BlogManager() {
   useEffect(() => { load() }, [])
 
   async function createPost() {
-    const res = await fetch("/api/admin/blogs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-    if (res.ok) {
-      setForm({ title: "", content: "", excerpt: "", image: "", category: "Climate Science", status: "DRAFT" })
-      await load()
+    setCreating(true)
+    setError("")
+    try {
+      const res = await fetch("/api/admin/blogs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setForm({ title: "", content: "", excerpt: "", image: "", category: "Climate Science", status: "DRAFT" })
+        await load()
+      } else {
+        const data = await res.json()
+        setError(data.error || "Failed to create post")
+      }
+    } catch (err) {
+      setError("Network error occurred")
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -79,7 +90,7 @@ export default function BlogManager() {
                 if (up.ok && json.url) setForm(f => ({ ...f, image: json.url }))
               } catch {}
             }} />
-            <Button type="button" variant="outline" onClick={() => document.getElementById('campaign-blog-file')?.click()}>Upload</Button>
+            <Button type="button" variant="outline" onClick={() => document.getElementById('blog-image-file')?.click()}>Upload</Button>
           </div>
           <Textarea placeholder="Excerpt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />
           <Textarea placeholder="Content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className="min-h-32" />
@@ -91,7 +102,10 @@ export default function BlogManager() {
               <SelectItem value="ARCHIVED">Archived</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={createPost} disabled={loading || !form.title || !form.content}>Publish</Button>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <Button onClick={createPost} disabled={loading || creating || !form.title || !form.content}>
+            {creating ? "Publishing..." : "Publish"}
+          </Button>
         </CardContent>
       </Card>
 
