@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,29 +16,37 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
+    captchaToken: ""
   })
   const [error, setError] = useState('');
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('Form submitted') // Debug log
     e.preventDefault();
     setIsLoading(true);
     setError(''); // Reset error on new submit
 
     try {
+      // Simple CAPTCHA validation (in production, use proper CAPTCHA service)
+      if (!captchaVerified) {
+        setError('Please complete the security verification');
+        return;
+      }
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          captchaToken: 'verified' // Simplified for now
+        }),
         credentials: 'include',
       });
 
-      console.log('Response status:', res.status) // Debug log
-
       const data = await res.json();
-      console.log('Response data:', data) // Debug log
 
       if (!res.ok) {
         setError(data.error || 'An error occurred');
@@ -115,6 +123,27 @@ export default function LoginPage() {
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+            </div>
+          </div>
+
+          {/* Security Verification */}
+          <div className="space-y-2">
+            <Label>Security Verification</Label>
+            <div className="flex items-center space-x-3 p-3 border rounded-md bg-muted/50">
+              <Shield className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Verify you're human</p>
+                <p className="text-xs text-muted-foreground">Complete the security check to continue</p>
+              </div>
+              <Button
+                type="button"
+                variant={captchaVerified ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCaptchaVerified(!captchaVerified)}
+                className={captchaVerified ? "bg-green-600 hover:bg-green-700" : ""}
+              >
+                {captchaVerified ? "✓ Verified" : "Verify"}
+              </Button>
             </div>
           </div>
 

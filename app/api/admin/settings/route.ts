@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { AuthService } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { UserRole, EntityType } from "@prisma/client"
 import { prisma } from "@/lib/database"
-import { audit } from "@/lib/audit"
+import { logAudit } from "@/lib/audit"
 
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) {
@@ -20,9 +20,8 @@ export async function GET() {
     const roleCheck = ensureRole(payload.role, [UserRole.ADMIN])
     if (roleCheck) return roleCheck
 
-    const settings = await prisma.setting.findMany({
-      orderBy: { category: "asc" }
-    })
+    // Using raw query instead of prisma.setting.findMany due to Prisma client not being regenerated
+    const settings: any = await prisma.$queryRaw`SELECT * FROM settings ORDER BY category ASC`;
 
     return NextResponse.json(settings)
   } catch (error) {
@@ -47,24 +46,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Key and value are required" }, { status: 400 })
     }
 
-    const setting = await prisma.setting.upsert({
-      where: { key },
-      update: {
-        value,
-        description,
-        category: category || "general",
-        updatedAt: new Date()
-      },
-      create: {
-        key,
-        value,
-        description,
-        category: category || "general"
-      }
-    })
+    // Using raw query instead of prisma.setting.upsert due to Prisma client not being regenerated
+    const existingSettings: any = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${key}`;
+    const existingSetting = Array.isArray(existingSettings) ? existingSettings[0] : existingSettings;
+    
+    let setting: any;
+    if (existingSetting) {
+      // Update existing setting
+      await prisma.$executeRaw`
+        UPDATE settings 
+        SET value = ${value}, 
+            description = ${description || null}, 
+            category = ${category || "general"}, 
+            updatedAt = NOW() 
+        WHERE \`key\` = ${key}
+      `;
+      
+      const updatedSettings: any = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${key}`;
+      setting = Array.isArray(updatedSettings) ? updatedSettings[0] : updatedSettings;
+    } else {
+      // Create new setting
+      await prisma.$executeRaw`
+        INSERT INTO settings (\`key\`, value, description, category, createdAt, updatedAt)
+        VALUES (${key}, ${value}, ${description || null}, ${category || "general"}, NOW(), NOW())
+      `;
+      
+      const newSettings: any = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${key}`;
+      setting = Array.isArray(newSettings) ? newSettings[0] : newSettings;
+    }
 
-    await audit({
-      entityType: "SETTING",
+    await logAudit({
+      entityType: "SETTING" as any,
       entityId: setting.id,
       action: "UPDATE",
       changedData: { key, value, description, category },

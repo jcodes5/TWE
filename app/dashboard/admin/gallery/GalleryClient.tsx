@@ -148,7 +148,6 @@ export default function GalleryClient({ userEmail }: GalleryClientProps) {
       wsRef.current = new WebSocket(wsUrl)
 
       wsRef.current.onopen = () => {
-        console.log('Gallery WebSocket connected')
         setIsConnected(true)
         toast({
           title: "Connected",
@@ -176,7 +175,6 @@ export default function GalleryClient({ userEmail }: GalleryClientProps) {
       }
 
       wsRef.current.onclose = () => {
-        console.log('Gallery WebSocket disconnected')
         setIsConnected(false)
         // Attempt to reconnect after 5 seconds
         setTimeout(connectWebSocket, 5000)

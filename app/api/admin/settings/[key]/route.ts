@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { AuthService } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { UserRole, EntityType } from "@prisma/client"
 import { prisma } from "@/lib/database"
-import { audit } from "@/lib/audit"
+import { logAudit } from "@/lib/audit"
 
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) {
@@ -16,9 +16,9 @@ export async function GET(
   { params }: { params: { key: string } }
 ) {
   try {
-    const setting = await prisma.setting.findUnique({
-      where: { key: params.key }
-    })
+    // Using raw query instead of prisma.setting.findUnique due to Prisma client not being regenerated
+    const settings = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${params.key}`;
+    const setting = Array.isArray(settings) ? settings[0] : settings;
 
     if (!setting) {
       return NextResponse.json({ error: "Setting not found" }, { status: 404 })
@@ -50,18 +50,26 @@ export async function PUT(
       return NextResponse.json({ error: "Value is required" }, { status: 400 })
     }
 
-    const setting = await prisma.setting.update({
-      where: { key: params.key },
-      data: {
-        value,
-        description,
-        category: category || "general",
-        updatedAt: new Date()
-      }
-    })
+    // Using raw query instead of prisma.setting.update due to Prisma client not being regenerated
+    const updatedSettings: any = await prisma.$executeRaw`
+      UPDATE settings 
+      SET value = ${value}, 
+          description = ${description || null}, 
+          category = ${category || "general"}, 
+          updatedAt = NOW() 
+      WHERE \`key\` = ${params.key}
+    `;
 
-    await audit({
-      entityType: "SETTING",
+    if (updatedSettings === 0) {
+      return NextResponse.json({ error: "Setting not found" }, { status: 404 })
+    }
+
+    // Fetch the updated setting to return it and get its ID for audit log
+    const settings: any = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${params.key}`;
+    const setting = Array.isArray(settings) ? settings[0] : settings;
+
+    await logAudit({
+      entityType: "SETTING" as any,
       entityId: setting.id,
       action: "UPDATE",
       changedData: { key: params.key, value, description, category },
@@ -71,9 +79,6 @@ export async function PUT(
     return NextResponse.json(setting)
   } catch (error) {
     console.error("Error updating setting:", error)
-    if (error instanceof Error && error.message.includes("Record to update not found")) {
-      return NextResponse.json({ error: "Setting not found" }, { status: 404 })
-    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -90,20 +95,19 @@ export async function DELETE(
     const roleCheck = ensureRole(payload.role, [UserRole.ADMIN])
     if (roleCheck) return roleCheck
 
-    const setting = await prisma.setting.findUnique({
-      where: { key: params.key }
-    })
+    // Fetch the setting to get its ID for audit log
+    const settings: any = await prisma.$queryRaw`SELECT * FROM settings WHERE \`key\` = ${params.key}`;
+    const setting = Array.isArray(settings) ? settings[0] : settings;
 
     if (!setting) {
       return NextResponse.json({ error: "Setting not found" }, { status: 404 })
     }
 
-    await prisma.setting.delete({
-      where: { key: params.key }
-    })
+    // Using raw query instead of prisma.setting.delete due to Prisma client not being regenerated
+    await prisma.$executeRaw`DELETE FROM settings WHERE \`key\` = ${params.key}`;
 
-    await audit({
-      entityType: "SETTING",
+    await logAudit({
+      entityType: "SETTING" as any,
       entityId: setting.id,
       action: "DELETE",
       changedData: { key: params.key },

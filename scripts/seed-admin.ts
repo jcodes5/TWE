@@ -6,15 +6,19 @@ const prisma = new PrismaClient()
 
 async function seedAdmin() {
   try {
-    const adminEmail = 'admin@twe.org'
-    
+    const adminEmail = process.env.ADMIN_EMAIL
+    const adminPassword = process.env.ADMIN_PASSWORD
+
+    if (!adminEmail || !adminPassword) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required')
+    }
+
     // Check if admin already exists
     const existingAdmin = await prisma.user.findUnique({
       where: { email: adminEmail },
     })
 
     if (existingAdmin) {
-      console.log('Admin user already exists')
       return
     }
 
@@ -23,7 +27,7 @@ async function seedAdmin() {
       email: adminEmail,
       firstName: 'Admin',
       lastName: 'User',
-      password: 'tweadmin123', // Change this in production
+      password: adminPassword,
       role: UserRole.ADMIN,
     })
 
@@ -33,10 +37,7 @@ async function seedAdmin() {
       data: { verified: true },
     })
 
-    console.log('Admin user created successfully!')
-    console.log('Email: admin@twe.org')
-    console.log('Password: tweadmin123')
-    console.log('Please change the password after first login!')
+    // Admin user created successfully
   } catch (error) {
     console.error('Error creating admin user:', error)
   } finally {

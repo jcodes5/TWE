@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Edit2, Save, X, AlertCircle, Check } from "lucide-react"
+import { Edit2, Save, X, AlertCircle, Check, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 type Campaign = {
   id: string
@@ -38,10 +39,11 @@ interface InlineEditProps {
   campaign: Campaign
   onSave: (data: CampaignFormData) => Promise<void>
   onCancel: () => void
+  onDelete?: () => Promise<void>
   isSaving?: boolean
 }
 
-export function CampaignInlineEditor({ campaign, onSave, onCancel, isSaving = false }: InlineEditProps) {
+export function CampaignInlineEditor({ campaign, onSave, onCancel, onDelete, isSaving = false }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<CampaignFormData>({
     title: campaign.title,
@@ -209,6 +211,29 @@ export function CampaignInlineEditor({ campaign, onSave, onCancel, isSaving = fa
             <div>{campaign._count?.donations || 0} donations</div>
             <div>{format(new Date(campaign.createdAt), 'MMM dd, yyyy')}</div>
           </div>
+          {onDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{campaign.title}"? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete} className="bg-red-600 hover:bg-red-700">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <Button
             variant="ghost"
             size="sm"

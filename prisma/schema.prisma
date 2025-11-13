@@ -16,6 +16,17 @@ model User {
   password         String
   role             UserRole       @default(VOLUNTEER)
   verified         Boolean        @default(false)
+  // MFA fields
+  mfaEnabled       Boolean        @default(false)
+  mfaSecret        String?
+  mfaBackupCodes   Json?
+  // Security fields
+  lastLoginAt      DateTime?
+  loginAttempts    Int            @default(0)
+  lockedUntil      DateTime?
+  sessionTimeout   Int            @default(3600000) // 1 hour in ms
+  // Permissions for RBAC
+  permissions      Json?          // JSON array of permission strings
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   auditLogs        AuditLog[]
@@ -26,6 +37,7 @@ model User {
   donations        Donation[]
   createdImages    GalleryImage[]
   refreshTokens    RefreshToken[]
+  securityLogs     SecurityLog[]
 
   @@map("users")
 }
@@ -268,4 +280,46 @@ enum EntityType {
   GALLERY_IMAGE
   CONTACT
   SETTING
+}
+
+model SecurityLog {
+  id          String        @id @default(cuid())
+  userId      String?
+  ipAddress   String
+  userAgent   String?
+  action      SecurityAction
+  details     Json?
+  createdAt   DateTime      @default(now())
+  user        User?         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([action])
+  @@map("security_logs")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  attempts  Int      @default(0)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([resetAt])
+  @@map("rate_limits")
+}
+
+enum SecurityAction {
+  LOGIN_ATTEMPT
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  MFA_ATTEMPT
+  MFA_SUCCESS
+  MFA_FAILURE
+  PASSWORD_RESET
+  ACCOUNT_LOCKED
+  SUSPICIOUS_ACTIVITY
+  ADMIN_ACCESS
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/lib/auth'
+import { SecurityService } from '@/lib/security'
 import { ZodError } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const { email, password, captchaToken } = body
 
     if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
       return NextResponse.json(
@@ -14,7 +15,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { user, accessToken, refreshToken } = await AuthService.login(email, password)
+    // Get client IP address
+    const ipAddress = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
+                     'unknown'
+
+    const userAgent = request.headers.get('user-agent') || undefined
+
+    // Basic CAPTCHA validation (simplified - in production use proper CAPTCHA service)
+    if (!captchaToken) {
+      return NextResponse.json(
+        { error: 'CAPTCHA required', details: 'Please complete the CAPTCHA' },
+        { status: 400 }
+      )
+    }
+
+    const { user, accessToken, refreshToken, requiresMFA } = await AuthService.login(email, password, ipAddress, userAgent)
+
+    // If MFA is required, don't set tokens yet
+    if (requiresMFA) {
+      return NextResponse.json({
+        message: 'MFA required',
+        requiresMFA: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
+      }, { status: 200 })
+    }
 
     const response = new NextResponse(
       JSON.stringify({

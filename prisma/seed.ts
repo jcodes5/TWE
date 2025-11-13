@@ -28,7 +28,7 @@ async function main() {
       },
     });
 
-    console.log("Admin user created:", admin.email);
+    // Admin user created (removed console.log for production)
   } catch (error) {
     console.error("Error seeding admin user:", error);
     throw error;

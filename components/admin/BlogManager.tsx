@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AVAILABLE_CATEGORIES } from '@/lib/categories'
+import { Trash2 } from "lucide-react"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 type Post = {
   id: string
@@ -59,6 +61,22 @@ export default function BlogManager() {
       setError("Network error occurred")
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function deletePost(id: string) {
+    try {
+      const res = await fetch(`/api/admin/blogs/${id}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        await load()
+      } else {
+        const data = await res.json()
+        setError(data.error || "Failed to delete post")
+      }
+    } catch (err) {
+      setError("Network error occurred")
     }
   }
 
@@ -126,7 +144,30 @@ export default function BlogManager() {
                 <p className="text-xs text-muted-foreground">by {p.author.firstName} {p.author.lastName} • {new Date(p.createdAt).toDateString()}</p>
                 {p.excerpt ? <p className="text-sm mt-1 line-clamp-2">{p.excerpt}</p> : null}
               </div>
-              <div className="text-xs text-muted-foreground">{p._count?.comments || 0} comments</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-muted-foreground">{p._count?.comments || 0} comments</div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800 hover:bg-red-50">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Blog Post</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{p.title}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deletePost(p.id)} className="bg-red-600 hover:bg-red-700">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           ))}
         </CardContent>

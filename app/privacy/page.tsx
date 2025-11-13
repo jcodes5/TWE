@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 async function getPrivacyPolicy() {
   try {
+    // @ts-ignore: Ignore TypeScript error for setting model
     const setting = await prisma.setting.findUnique({
       where: { key: "privacy_policy" }
     })

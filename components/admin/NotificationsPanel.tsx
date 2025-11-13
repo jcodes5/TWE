@@ -59,7 +59,6 @@ export default function NotificationsPanel() {
       wsRef.current = ws
 
       ws.onopen = () => {
-        console.log("WebSocket connected")
         setIsConnected(true)
       }
 
@@ -75,7 +74,6 @@ export default function NotificationsPanel() {
       }
 
       ws.onclose = () => {
-        console.log("WebSocket disconnected")
         setIsConnected(false)
         // Attempt to reconnect after 5 seconds
         setTimeout(connectWebSocket, 5000)

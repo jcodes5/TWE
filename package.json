@@ -2,13 +2,15 @@
   "name": "the-weather-and-everything",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "lint": "next lint",
-    "type": "module",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "security:scan": "ts-node scripts/security-scan.ts",
+    "security:audit": "npm audit && ts-node scripts/security-scan.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -67,6 +69,7 @@
     "next": "^14.2.33",
     "next-auth": "^4.24.13",
     "next-themes": "^0.4.4",
+    "otplib": "^12.0.1",
     "react": "^18",
     "react-colorful": "^5.6.1",
     "react-countup": "^6.5.3",
@@ -98,6 +101,7 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/speakeasy": "^2.0.10",
     "bcryptjs": "^3.0.2",
     "postcss": "^8",
     "prisma": "^6.16.3",

@@ -100,7 +100,7 @@ export default function CampaignManager() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      
+
       if (res.ok) {
         await load()
         setEditingId(null)
@@ -117,6 +117,24 @@ export default function CampaignManager() {
         next.delete(campaignId)
         return next
       })
+    }
+  }
+
+  async function handleDelete(campaignId: string) {
+    try {
+      const res = await fetch(`/api/admin/campaigns/${campaignId}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        await load()
+      } else {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to delete campaign')
+      }
+    } catch (error) {
+      console.error('Delete failed:', error)
+      throw error
     }
   }
 
@@ -288,6 +306,7 @@ export default function CampaignManager() {
                 campaign={c}
                 onSave={(data: any) => handleSave(c.id, data)}
                 onCancel={() => setEditingId(null)}
+                onDelete={() => handleDelete(c.id)}
                 isSaving={savingIds.has(c.id)}
               />
             ))}

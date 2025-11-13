@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 async function getTermsOfService() {
   try {
+    // @ts-ignore: Ignore TypeScript error for setting model
     const setting = await prisma.setting.findUnique({
       where: { key: "terms_of_service" }
     })

@@ -15,8 +15,6 @@ class NotificationWebSocketServer {
     this.wss = new WebSocketServer({ server, path: "/api/ws/notifications" });
 
     this.wss.on("connection", (ws: ExtendedWebSocket, request: IncomingMessage) => {
-      console.log("New WebSocket connection established");
-
       ws.isAlive = true;
       this.clients.add(ws);
 
@@ -35,7 +33,6 @@ class NotificationWebSocketServer {
       });
 
       ws.on("close", () => {
-        console.log("WebSocket connection closed");
         this.clients.delete(ws);
       });
 
