@@ -6,6 +6,8 @@ type CampaignStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "CANCELLED"
 type UrgencyLevel = "HIGH" | "MEDIUM" | "LOW"
 type ImpactLevel = "INTERNATIONAL" | "NATIONAL" | "REGIONAL" | "LOCAL"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

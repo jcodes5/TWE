@@ -36,7 +36,7 @@ export default function BlogHero() {
               className="text-4xl md:text-6xl font-hartone font-bold text-foreground leading-tight"
             >
               Environmental{" "}
-              <span className="bg-gradient-to-r from-green-light to-green-dark bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Insights
               </span>
             </motion.h1>

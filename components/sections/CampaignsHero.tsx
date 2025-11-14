@@ -55,7 +55,7 @@ export default function CampaignsHero() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-hartone font-bold text-foreground leading-tight"
               >
                 Join Our{" "}
-                <span className="text-green-dark dark:text-green-light">
+                <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                   Global
                 </span>{" "}
                 Campaigns

@@ -26,6 +26,8 @@ import {
   DollarSign
 } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) redirect("/auth/login")
 }

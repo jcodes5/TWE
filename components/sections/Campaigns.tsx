@@ -2,45 +2,51 @@
 
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { ArrowRight, MapPin, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import Image from "next/image"
 
-const campaigns = [
-  {
-    id: 1,
-    title: "Ocean Cleanup Initiative",
-    description: "Join us in removing plastic waste from our oceans and protecting marine life.",
-    image: "/placeholder.svg?height=300&width=400",
-    location: "Pacific Coast",
-    date: "Ongoing",
-    progress: 75,
-  },
-  {
-    id: 2,
-    title: "Urban Forest Project",
-    description: "Planting trees in urban areas to improve air quality and create green spaces.",
-    image: "/placeholder.svg?height=300&width=400",
-    location: "Major Cities",
-    date: "2024-2025",
-    progress: 60,
-  },
-  {
-    id: 3,
-    title: "Renewable Energy Advocacy",
-    description: "Promoting solar and wind energy adoption in local communities.",
-    image: "/placeholder.svg?height=300&width=400",
-    location: "Global",
-    date: "Year-round",
-    progress: 85,
-  },
-]
+interface Campaign {
+  id: string
+  title: string
+  description: string
+  image?: string
+  location: string
+  goal: number
+  raised: number
+  endDate?: string
+  startDate?: string
+}
 
 export default function Campaigns() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/campaigns/search?limit=3')
+        if (!response.ok) {
+          throw new Error('Failed to fetch campaigns')
+        }
+        const data = await response.json()
+        setCampaigns(data.campaigns || [])
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load campaigns')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCampaigns()
+  }, [])
 
   return (
     <section ref={ref} className="py-20 lg:py-32 bg-gray-50 dark:bg-gray-900">
@@ -59,71 +65,115 @@ export default function Campaigns() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {campaigns.map((campaign, index) => (
-            <motion.div
-              key={campaign.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
-            >
-              <Card className="h-full hover:shadow-xl transition-shadow duration-300 group">
-                <CardHeader className="p-0">
-                  <div className="relative overflow-hidden rounded-t-lg">
-                    <Image
-                      src={campaign.image || "/placeholder.svg"}
-                      alt={campaign.title}
-                      width={400}
-                      height={300}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 right-4 bg-green-light text-green-dark px-3 py-1 rounded-full text-sm font-semibold">
-                      {campaign.progress}% Complete
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {[...Array(3)].map((_, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8, delay: index * 0.2 }}
+              >
+                <Card className="h-full">
+                  <CardHeader className="p-0">
+                    <div className="relative overflow-hidden rounded-t-lg bg-gray-200 dark:bg-gray-700 animate-pulse h-48" />
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4 w-3/4" />
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20" />
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16" />
                     </div>
-                  </div>
-                </CardHeader>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {campaigns.map((campaign, index) => {
+              const progress = campaign.goal > 0 ? Math.round((campaign.raised / campaign.goal) * 100) : 0
+              const date = campaign.endDate
+                ? new Date(campaign.endDate).toLocaleDateString()
+                : campaign.startDate
+                ? new Date(campaign.startDate).toLocaleDateString()
+                : "Ongoing"
 
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-black dark:text-black mb-3">{campaign.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-500 mb-4 leading-relaxed">{campaign.description}</p>
+              return (
+                <motion.div
+                  key={campaign.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                >
+                  <Card className="h-full hover:shadow-xl transition-shadow duration-300 group">
+                    <CardHeader className="p-0">
+                      <div className="relative overflow-hidden rounded-t-lg">
+                        <Image
+                          src={campaign.image || "/placeholder.svg"}
+                          alt={campaign.title}
+                          width={400}
+                          height={300}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-4 right-4 bg-green-light text-green-dark px-3 py-1 rounded-full text-sm font-semibold">
+                          {progress}% Complete
+                        </div>
+                      </div>
+                    </CardHeader>
 
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {campaign.location}
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {campaign.date}
-                    </div>
-                  </div>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold text-black dark:text-black mb-3">{campaign.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-500 mb-4 leading-relaxed">{campaign.description}</p>
 
-                  {/* Progress Bar */}
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={isInView ? { width: `${campaign.progress}%` } : {}}
-                        transition={{ duration: 1, delay: 0.5 + index * 0.2 }}
-                        className="bg-green-light h-2 rounded-full"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {campaign.location}
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {date}
+                        </div>
+                      </div>
 
-                <CardFooter className="p-6 pt-0">
-                  <Button
-                    variant="outline"
-                    className="w-full group-hover:bg-green-light group-hover:text-green-dark group-hover:border-green-light transition-colors duration-300"
-                  >
-                    Learn More
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                      {/* Progress Bar */}
+                      <div className="mt-4">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={isInView ? { width: `${progress}%` } : {}}
+                            transition={{ duration: 1, delay: 0.5 + index * 0.2 }}
+                            className="bg-green-light h-2 rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="p-6 pt-0">
+                      <Button
+                        variant="outline"
+                        className="w-full group-hover:bg-green-light group-hover:text-green-dark group-hover:border-green-light transition-colors duration-300"
+                      >
+                        Learn More
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}

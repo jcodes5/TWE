@@ -4,6 +4,8 @@ import { AuthService } from "@/lib/auth"
 import { UserRole } from "@prisma/client"
 import GalleryClient from "./GalleryClient"
 
+export const dynamic = 'force-dynamic'
+
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) redirect("/auth/login")
 }

@@ -34,7 +34,7 @@ export default function ContactHero() {
               className="text-4xl md:text-6xl font-hartone font-bold text-foreground leading-tight"
             >
               Get in{" "}
-              <span className="bg-gradient-to-r from-green-light to-green-dark bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
                 Touch
               </span>
             </motion.h1>
@@ -56,9 +56,9 @@ export default function ContactHero() {
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               {[
-                { icon: Mail, label: "Email Us", value: "hello@twe.org" },
-                { icon: Phone, label: "Call Us", value: "+1 (555) 123-4567" },
-                { icon: MapPin, label: "Visit Us", value: "123 Green Street, Eco City" },
+                { icon: Mail, label: "Email Us", value: "theweatherandeverything@gmail.com" },
+                { icon: Phone, label: "Call Us", value: "+234 908 058 4032" },
+                { icon: MapPin, label: "Visit Us", value: "Lekki, Lagos state, Nigeria" },
                 { icon: MessageCircle, label: "Chat", value: "Live Support Available" }
               ].map((contact, index) => (
                 <motion.div

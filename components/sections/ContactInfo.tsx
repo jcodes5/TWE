@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef } from "react"
 import { Mail, Phone, MapPin, Clock, Globe, MessageCircle } from 'lucide-react'
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { Card, CardContent } from "@/components/ui/card"
 
 const contactMethods = [
@@ -11,47 +12,47 @@ const contactMethods = [
     icon: <Mail className="h-8 w-8" />,
     title: "Email Us",
     description: "Send us an email and we'll respond within 24 hours",
-    contact: "info@tweather.org",
-    action: "mailto:info@tweather.org",
+    contact: "theweatherandeverything@gmail.com",
+    action: "mailto:theweatherandeverything@gmail.com",
     color: "from-blue-400 to-blue-600"
   },
   {
     icon: <Phone className="h-8 w-8" />,
     title: "Call Us",
     description: "Speak directly with our team during business hours",
-    contact: "+1 (555) 123-4567",
-    action: "tel:+15551234567",
+    contact: "+234 908 058 4032",
+    action: "tel:+234 908 058 4032",
     color: "from-green-400 to-green-600"
   },
   {
     icon: <MapPin className="h-8 w-8" />,
     title: "Visit Us",
     description: "Come to our headquarters for in-person meetings",
-    contact: "123 Green Street, Eco City, EC 12345",
-    action: "https://maps.google.com",
+    contact: "Lekki, Lagos state, Nigeria.",
+    action: "https://maps.app.goo.gl/gZbFwyHdi8Rs3xCHA",
     color: "from-purple-400 to-purple-600"
   },
   {
     icon: <MessageCircle className="h-8 w-8" />,
     title: "Live Chat",
     description: "Chat with our support team in real-time",
-    contact: "Available 9 AM - 6 PM EST",
+    contact: "Available 9 AM - 6 PM WAT",
     action: "#",
     color: "from-orange-400 to-red-500"
   }
 ]
 
 const officeHours = [
-  { day: "Monday - Friday", hours: "9:00 AM - 6:00 PM EST" },
-  { day: "Saturday", hours: "10:00 AM - 4:00 PM EST" },
+  { day: "Monday - Friday", hours: "9:00 AM - 6:00 PM WAT" },
+  { day: "Saturday", hours: "Closed" },
   { day: "Sunday", hours: "Closed" }
 ]
 
 const socialLinks = [
-  { name: "Twitter", url: "#", icon: "🐦" },
-  { name: "LinkedIn", url: "#", icon: "💼" },
-  { name: "Facebook", url: "#", icon: "📘" },
-  { name: "Instagram", url: "#", icon: "📷" }
+  { name: "Twitter", url: "#", icon: <FaTwitter className="h-8 w-8" /> },
+  { name: "LinkedIn", url: "#", icon: <FaLinkedin className="h-8 w-8" /> },
+  { name: "Facebook", url: "#", icon: <FaFacebook className="h-8 w-8" /> },
+  { name: "Instagram", url: "#", icon: <FaInstagram className="h-8 w-8" /> }
 ]
 
 export default function ContactInfo() {
@@ -148,11 +149,11 @@ export default function ContactInfo() {
                   For urgent environmental incidents or emergencies
                 </p>
                 <a
-                  href="tel:+15551234567"
+                  href="tel: +234 908 058 4032"
                   className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  Emergency Hotline: +1 (555) 123-4567
+                  Emergency Hotline: +234 908 058 4032
                 </a>
               </CardContent>
             </Card>

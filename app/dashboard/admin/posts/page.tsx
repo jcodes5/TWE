@@ -5,6 +5,8 @@ import { UserRole } from "@prisma/client"
 import BlogManager from "@/components/admin/BlogManager"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = 'force-dynamic'
+
 function ensureRole(role: UserRole, allowed: UserRole[]) {
   if (!allowed.includes(role)) redirect("/auth/login")
 }

@@ -175,6 +175,7 @@ export default function ContactForm() {
                     value={formData.inquiryType}
                     onChange={handleInputChange}
                     className="w-full h-12 px-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-black dark:text-white focus:border-green-light focus:ring-green-light"
+                    aria-label="Inquiry Type"
                   >
                     {inquiryTypes.map((type) => (
                       <option key={type.value} value={type.value}>
