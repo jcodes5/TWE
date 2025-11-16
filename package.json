@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.cjs",
+    "postinstall": "prisma generate",
     "build": "next build",
     "start": "NODE_ENV=production node server.cjs",
     "lint": "next lint",
