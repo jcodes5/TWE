@@ -57,7 +57,7 @@ export default function Campaigns() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-black mb-6">
+          <h2 className="text-4xl lg:text-5xl font-hartone font-bold text-black dark:text-white mb-6">
             Active Campaigns
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-500 max-w-3xl mx-auto">

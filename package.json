@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "node server.cjs",
     "build": "next build",
-    "start": "NODE_ENV=production node server.js",
+    "start": "NODE_ENV=production node server.cjs",
     "lint": "next lint",
     "prisma:seed": "ts-node prisma/seed.ts",
     "security:scan": "ts-node scripts/security-scan.ts",

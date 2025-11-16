@@ -6,7 +6,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const { notificationWebSocket } = require('./lib/js/websocket');
+const { notificationWebSocket } = require('./lib/js/websocket.cjs');
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -20,6 +20,6 @@ app.prepare().then(() => {
   const port = process.env.PORT || 3000;
   server.listen(port, (err) => {
     if (err) throw err;
-    // Server started (removed console.log for production)
+    console.log(`Server listening on port ${port}`);
   });
 });

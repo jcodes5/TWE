@@ -49,30 +49,74 @@ export default function WeatherWidget() {
     }
   }
 
+  // Get weather condition and description from Open-Meteo weather code
+  const getWeatherCondition = (code: number) => {
+    const conditions: { [key: number]: { condition: string; description: string } } = {
+      0: { condition: "Clear", description: "Clear sky" },
+      1: { condition: "Clouds", description: "Mainly clear" },
+      2: { condition: "Clouds", description: "Partly cloudy" },
+      3: { condition: "Clouds", description: "Overcast" },
+      45: { condition: "Mist", description: "Fog" },
+      48: { condition: "Mist", description: "Depositing rime fog" },
+      51: { condition: "Rain", description: "Light drizzle" },
+      53: { condition: "Rain", description: "Moderate drizzle" },
+      55: { condition: "Rain", description: "Dense drizzle" },
+      56: { condition: "Rain", description: "Light freezing drizzle" },
+      57: { condition: "Rain", description: "Dense freezing drizzle" },
+      61: { condition: "Rain", description: "Slight rain" },
+      63: { condition: "Rain", description: "Moderate rain" },
+      65: { condition: "Rain", description: "Heavy rain" },
+      66: { condition: "Rain", description: "Light freezing rain" },
+      67: { condition: "Rain", description: "Heavy freezing rain" },
+      71: { condition: "Snow", description: "Slight snow fall" },
+      73: { condition: "Snow", description: "Moderate snow fall" },
+      75: { condition: "Snow", description: "Heavy snow fall" },
+      77: { condition: "Snow", description: "Snow grains" },
+      80: { condition: "Rain", description: "Slight rain showers" },
+      81: { condition: "Rain", description: "Moderate rain showers" },
+      82: { condition: "Rain", description: "Violent rain showers" },
+      85: { condition: "Snow", description: "Slight snow showers" },
+      86: { condition: "Snow", description: "Heavy snow showers" },
+      95: { condition: "Thunderstorm", description: "Thunderstorm" },
+      96: { condition: "Thunderstorm", description: "Thunderstorm with slight hail" },
+      99: { condition: "Thunderstorm", description: "Thunderstorm with heavy hail" }
+    }
+    return conditions[code] || { condition: "Clouds", description: "Unknown" }
+  }
+
   // Get user's location
   const getUserLocation = () => {
     return new Promise<LocationData>((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error("Geolocation is not supported by this browser"))
+        // Fallback to default location (Lagos, Nigeria)
+        resolve({
+          lat: 6.5244,
+          lon: 3.3792,
+          city: "Lagos",
+          country: "Nigeria"
+        })
         return
       }
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords
-          
+
           try {
-            // Get city name from coordinates using reverse geocoding
+            // Get city name from coordinates using Nominatim (OpenStreetMap)
             const geoResponse = await axios.get(
-              `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             )
-            
-            const cityData = geoResponse.data[0]
+
+            const address = geoResponse.data.address
+            const city = address?.city || address?.town || address?.village || address?.hamlet || "Unknown"
+            const country = address?.country || ""
+
             resolve({
               lat: latitude,
               lon: longitude,
-              city: cityData?.name || "Unknown",
-              country: cityData?.country || ""
+              city,
+              country
             })
           } catch (error) {
             resolve({
@@ -84,7 +128,7 @@ export default function WeatherWidget() {
           }
         },
         (error) => {
-          reject(new Error("Unable to retrieve location"))
+          reject(new Error("Location access denied or failed. Please enable location permissions in your browser and ensure the site is accessed over HTTPS."))
         },
         {
           timeout: 10000,
@@ -99,21 +143,23 @@ export default function WeatherWidget() {
   const fetchWeatherData = async (locationData: LocationData) => {
     try {
       const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${locationData.lat}&lon=${locationData.lon}&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=metric`
+        `https://api.open-meteo.com/v1/forecast?latitude=${locationData.lat}&longitude=${locationData.lon}&current_weather=true&windspeed_unit=ms&hourly=relative_humidity_2m`
       )
-      
+
       const data = response.data
-      
+      const current = data.current_weather
+      const { condition, description } = getWeatherCondition(current.weathercode)
+
       const weatherData: WeatherData = {
-        temperature: Math.round(data.main.temp),
-        condition: data.weather[0].main,
-        humidity: data.main.humidity,
+        temperature: Math.round(current.temperature),
+        condition,
+        humidity: data.hourly.relative_humidity_2m[0],
         location: `${locationData.city}${locationData.country ? ', ' + locationData.country : ''}`,
-        description: data.weather[0].description,
-        windSpeed: data.wind.speed,
-        feelsLike: Math.round(data.main.feels_like)
+        description,
+        windSpeed: current.windspeed,
+        feelsLike: Math.round(current.temperature) // Approximate with current temperature
       }
-      
+
       setWeather(weatherData)
     } catch (error) {
       throw new Error("Failed to fetch weather data")
@@ -127,10 +173,6 @@ export default function WeatherWidget() {
         setIsLoading(true)
         setError(null)
         
-        // Check if API key is available
-        if (!process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY) {
-          throw new Error("Weather API key not configured")
-        }
         
         const locationData = await getUserLocation()
         setLocation(locationData)
