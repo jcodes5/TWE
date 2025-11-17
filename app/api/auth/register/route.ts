@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User already exists with this email' }, { status: 400 })
     }
 
-    const safeRole: UserRole = role === 'SPONSOR' ? 'SPONSOR' : 'VOLUNTEER'
+    // Only allow VOLUNTEER or SPONSOR roles during registration
+    // ADMIN role can only be assigned via scripts or by existing admins
+    const safeRole: UserRole = role === UserRole.SPONSOR ? UserRole.SPONSOR : UserRole.VOLUNTEER;
 
     const created = await AuthService.register({
       email,
@@ -36,14 +38,14 @@ export async function POST(request: NextRequest) {
     )
 
     const payload = { userId: created.id, email: created.email, role: created.role }
-    const accessToken = AuthService.generateAccessToken(payload)
-    const refreshToken = AuthService.generateRefreshToken(payload)
+    const accessToken = await AuthService.generateAccessToken(payload)
+    const refreshToken = await AuthService.generateRefreshToken(payload)
     await AuthService.storeRefreshToken(created.id, refreshToken)
 
     const response = NextResponse.json({
       message: 'User created successfully',
       user: created,
-      redirectUrl: created.role === 'ADMIN' ? '/dashboard/admin' : '/auth/confirmation',
+      redirectUrl: created.role === UserRole.ADMIN ? '/dashboard/admin' : '/auth/confirmation',
     }, { status: 201 })
 
     response.cookies.set('accessToken', accessToken, {

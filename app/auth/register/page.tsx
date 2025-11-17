@@ -257,16 +257,3 @@ function RegisterForm() {
               </Link>
             </p>
           </div>
-        </form>
-      </div>
-    </AuthLayout>
-  );
-}
-
-export default function RegisterPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <RegisterForm />
-    </Suspense>
-  );
-}

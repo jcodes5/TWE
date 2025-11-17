@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/lib/auth'
 import { SecurityService } from '@/lib/security'
+import { UserRole } from '@prisma/client'
 import { ZodError } from 'zod'
 
 export async function POST(request: NextRequest) {
@@ -30,7 +31,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { user, accessToken, refreshToken, requiresMFA } = await AuthService.login(email, password, ipAddress, userAgent)
+    const { user, requiresMFA } = await AuthService.login(email, password, ipAddress, userAgent)
+
+    // Generate tokens
+    const accessToken = await AuthService.generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const refreshToken = await AuthService.generateRefreshToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     // If MFA is required, don't set tokens yet
     if (requiresMFA) {
@@ -56,9 +70,9 @@ export async function POST(request: NextRequest) {
         },
         token: accessToken,
         redirectUrl:
-          user.role === 'ADMIN'
+          user.role === UserRole.ADMIN
             ? '/dashboard/admin'
-            : user.role === 'SPONSOR'
+            : user.role === UserRole.SPONSOR
             ? '/dashboard/sponsor'
             : '/dashboard/volunteer',
       }),
@@ -71,7 +85,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       path: '/',
       maxAge: 15 * 60, // 15 minutes
     })
@@ -79,7 +93,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60, // 7 days
     })

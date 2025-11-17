@@ -1,14 +1,15 @@
 
 import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcryptjs'
 import { prisma } from './database.ts'
 import { UserRole } from '@prisma/client'
 import { SecurityService } from './security'
 
-const JWT_SECRET = process.env.JWT_SECRET!
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '691033f8e7ea42af9d13a9fcf40551a5831b91b4e3f7eaea561f72a9d989f5441c1c5c751a6059fc2c7b3ce6e04e4699b42343835a473c80e15752def1c4173c')
+const JWT_REFRESH_SECRET = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || '609ca7079b56560affd38835676c292eb5b586d0ad6f89e1d79486e6990e4672f042ecf08357bc4dbe84b8ca429f38ef214c879ebbdeba091eb074d5359c4e14')
 
-if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
   throw new Error('JWT_SECRET and JWT_REFRESH_SECRET environment variables are required')
 }
 
@@ -27,26 +28,36 @@ export class AuthService {
     return bcrypt.compare(password, hash)
   }
 
-  static generateAccessToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_SECRET!, { expiresIn: '15m' })
+  static async generateAccessToken(payload: JWTPayload): Promise<string> {
+    return new SignJWT(payload)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('15m')
+      .sign(JWT_SECRET)
   }
 
-  static generateRefreshToken(payload: JWTPayload): string {
-    return jwt.sign(payload, JWT_REFRESH_SECRET!, { expiresIn: '7d' })
+  static async generateRefreshToken(payload: JWTPayload): Promise<string> {
+    return new SignJWT(payload)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d')
+      .sign(JWT_REFRESH_SECRET)
   }
 
-  static verifyAccessToken(token: string, secret: string = JWT_SECRET): JWTPayload | null {
+  static async verifyAccessToken(token: string): Promise<JWTPayload | null> {
     try {
-      return jwt.verify(token, secret) as unknown as JWTPayload
+      const { payload } = await jwtVerify(token, JWT_SECRET)
+      return payload as JWTPayload
     } catch (err: any) {
       console.error('❌ Access token invalid:', err.message)
       return null
     }
   }
 
-  static verifyRefreshToken(token: string, secret: string = JWT_REFRESH_SECRET): JWTPayload | null {
+  static async verifyRefreshToken(token: string): Promise<JWTPayload | null> {
     try {
-      return jwt.verify(token, secret) as unknown as JWTPayload
+      const { payload } = await jwtVerify(token, JWT_REFRESH_SECRET)
+      return payload as JWTPayload
     } catch (err: any) {
       console.error('❌ Refresh token invalid:', err.message)
       return null
@@ -73,18 +84,28 @@ export class AuthService {
   }
 
   static async validateRefreshToken(token: string): Promise<boolean> {
-    const refreshToken = await prisma.refreshToken.findUnique({
-      where: { token },
-    })
+    try {
+      // Use a more direct approach to avoid crypto module issues in edge runtime
+      const refreshToken = await prisma.refreshToken.findUnique({
+        where: { token },
+      })
 
-    if (!refreshToken || refreshToken.expiresAt < new Date()) {
-      if (refreshToken) {
-        await this.removeRefreshToken(token)
+      if (!refreshToken) {
+        return false
       }
+
+      // Check if token is expired
+      if (refreshToken.expiresAt < new Date()) {
+        // Delete expired token
+        await this.removeRefreshToken(token)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error validating refresh token:', error)
       return false
     }
-
-    return true
   }
 
   static async register(userData: {
@@ -177,8 +198,8 @@ export class AuthService {
       role: user.role,
     }
 
-    const accessToken = this.generateAccessToken(payload)
-    const refreshToken = this.generateRefreshToken(payload)
+    const accessToken = await this.generateAccessToken(payload)
+    const refreshToken = await this.generateRefreshToken(payload)
 
     await this.storeRefreshToken(user.id, refreshToken)
     await SecurityService.handleSuccessfulLogin(user.id, ipAddress)
@@ -199,7 +220,7 @@ export class AuthService {
   }
 
   static async refreshAccessToken(refreshToken: string) {
-    const payload = this.verifyRefreshToken(refreshToken)
+    const payload = await this.verifyRefreshToken(refreshToken)
     
     if (!payload || !(await this.validateRefreshToken(refreshToken))) {
       throw new Error('Invalid refresh token')
@@ -219,7 +240,7 @@ export class AuthService {
       role: user.role,
     }
 
-    const accessToken = this.generateAccessToken(newPayload)
+    const accessToken = await this.generateAccessToken(newPayload)
 
     return { accessToken }
   }

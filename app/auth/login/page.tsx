@@ -48,6 +48,8 @@ export default function LoginPage() {
 
       const data = await res.json();
 
+      console.log('Login response:', res.status, data);
+
       if (!res.ok) {
         setError(data.error || 'An error occurred');
         return;
@@ -55,11 +57,13 @@ export default function LoginPage() {
 
       // Use the redirect URL from the API response
       if (data.redirectUrl) {
-         setTimeout(() => {
-  window.location.href = data.redirectUrl;
-}, 100);
- // Updated redirection logic
+        console.log('Redirecting to:', data.redirectUrl);
+        // Add a small delay to ensure cookies are set
+        setTimeout(() => {
+          window.location.href = data.redirectUrl;
+        }, 100);
       } else {
+        console.log('No redirectUrl, falling back to volunteer');
         // Fallback to default dashboard if no redirect URL is provided
         router.push('/dashboard/volunteer'); // Updated fallback redirection
       }

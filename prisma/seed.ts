@@ -1,5 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
+import * as dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 const prisma = new PrismaClient();
 
@@ -13,6 +17,8 @@ async function main() {
 
   // Hash the admin password
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+  console.log('Attempting to create admin user with email:', adminEmail);
 
   try {
     const admin = await prisma.user.upsert({
@@ -28,7 +34,7 @@ async function main() {
       },
     });
 
-    // Admin user created (removed console.log for production)
+    console.log('Admin user created successfully:', admin.email);
   } catch (error) {
     console.error("Error seeding admin user:", error);
     throw error;
